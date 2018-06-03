@@ -9,7 +9,7 @@ type BoardParameters =
 /// Tool is assumed to be an end mill.
 type ToolParameters =
     {   Diameter : float<m>
-        /// As a percentage of tool diameter.
+        /// As a fraction of tool diameter.
         StepOver : float
         /// How deep to cut with each pass. Half the tool diameter is a good choice.
         DepthOfCut : float<m>
