@@ -7,6 +7,8 @@
   <ItemGroup>
     <Compile Include="Machine.fs" />
     <Compile Include="GCode.fs" />
+    <Compile Include="FingerParameters.fs" />
+    <Compile Include="FingerCode.fs" />
   </ItemGroup>
 
 </Project>
