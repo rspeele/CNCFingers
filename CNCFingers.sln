@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2018
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CNCFingers", "CNCFingers\CNCFingers.fsproj", "{1ECA1EB7-4831-4701-B503-899AD27C1ACF}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "CNCFingers", "CNCFingers\CNCFingers.fsproj", "{1ECA1EB7-4831-4701-B503-899AD27C1ACF}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fingerator", "Fingerator\Fingerator.fsproj", "{C6754523-D4E1-4BA9-99A3-4C2EF9673940}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{1ECA1EB7-4831-4701-B503-899AD27C1ACF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1ECA1EB7-4831-4701-B503-899AD27C1ACF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1ECA1EB7-4831-4701-B503-899AD27C1ACF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6754523-D4E1-4BA9-99A3-4C2EF9673940}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6754523-D4E1-4BA9-99A3-4C2EF9673940}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6754523-D4E1-4BA9-99A3-4C2EF9673940}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6754523-D4E1-4BA9-99A3-4C2EF9673940}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

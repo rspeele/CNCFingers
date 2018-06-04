@@ -26,8 +26,8 @@ type private InstructionGenerator(job : JobParameters) =
         // deepest we cut is equal to the tool radius, which is a pretty safe bet for DOC in wood anyway.
         let centerDeltaX =
             match direction with
-            | Clockwise -> rad
-            | CounterClockwise -> -rad
+            | CounterClockwise -> rad
+            | Clockwise -> -rad
         let arc =
             {   Plane = XZ
                 Direction = direction
@@ -70,7 +70,9 @@ type private InstructionGenerator(job : JobParameters) =
 
             // Now cut the curves out of each side.
             yield RapidMove [ Z, 0.0<m> ]
-            yield! cutCurve CounterClockwise x
+            // I would think these would be backwards. CCW to go up and left, CW to go up and right. But what do I know.
+            // Every G-Code simulator disagrees with me.
+            yield! cutCurve Clockwise x
             yield! cutCurve CounterClockwise (x + deltaXWithinPocket)
         }
 
