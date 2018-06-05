@@ -44,7 +44,7 @@ type private InstructionGenerator(job : JobParameters) =
     // Start at Z=0. Ends at starting X, Y=-rad, Z=0.
     let cutCurve direction (x : float<m>) =
         seq {
-            for y in -rad .. stepover .. board.Thickness - rad do
+            for y in -rad .. stepover .. pocketYMax do
                 yield RapidMove [ X, x; Y, y ]
                 yield RapidMove [ Z, -rad - finger.EndAllowance ]
                 yield curveArcInstruction direction x
@@ -71,7 +71,7 @@ type private InstructionGenerator(job : JobParameters) =
     /// Assuming we're starting from Y=-rad and Z=0. Repeatedly runs cutPocketPass stepping down the Z-axis.
     let cutPocket (x : float<m>) =
         seq {
-            yield RapidMove [ Z, 0.0<m> ]
+            yield RapidMove [ Z, zClearance ]
             for z in zPasses (-doc) (-board.Thickness) do
                 yield RapidMove [ Y, -rad; X, x ]
                 yield RapidMove [ Z, z ]
@@ -114,7 +114,7 @@ type private InstructionGenerator(job : JobParameters) =
 
             // Now we need to cut to the depth past the curves atop the fingers, which will be equal to the tool radius
             // plus end allowance.
-            let finalZ = rad + finger.EndAllowance
+            let finalZ = -rad - finger.EndAllowance
 
             let rampDistance = tool.Diameter * tool.RampFactor
 
