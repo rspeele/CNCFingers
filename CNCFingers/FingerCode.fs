@@ -70,8 +70,8 @@ type private InstructionGenerator(job : JobParameters) =
 
             // Now cut the curves out of each side.
             yield RapidMove [ Z, 0.0<m> ]
-            // I would think these would be backwards. CCW to go up and left, CW to go up and right. But what do I know.
-            // Every G-Code simulator disagrees with me.
+            // The "back" curve is clockwise since we look at the XZ plane "down" the Y axis i.e. towards negative,
+            // just like we would look at the XY plane "down" the Z axis.
             yield! cutCurve Clockwise x
             yield! cutCurve CounterClockwise (x + deltaXWithinPocket)
         }
