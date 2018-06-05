@@ -14,6 +14,7 @@ let main argv =
                     DepthOfCut = diameter * 0.5
                     FeedRate = 0.025<m/s>
                     PlungeRate = 0.0125<m/s>
+                    RampFactor = 2.0
                 }
             Board =
                 {   Width = boardWidth
