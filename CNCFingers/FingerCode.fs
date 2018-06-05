@@ -25,7 +25,6 @@ type private InstructionGenerator(job : JobParameters) =
     // made in this way will have the full allowance on both sides.
     let deltaXWithinPocket = finger.FingerWidth + finger.SideAllowance - di
 
-                                                                                                                                 // TODO vertical allowance
     // Cuts up and to the right right if direction is Clockwise, otherwise up and to the left.
     let curveArcInstruction direction (x : float<m>) =
         // We ignore the DOC setting here, which is _wrong_, but shouldn't be _disastrous_. This is because the
@@ -40,14 +39,14 @@ type private InstructionGenerator(job : JobParameters) =
                 // Relative to the starting position of the cut.
                 Center = centerDeltaX, 0.0<m>
             }
-        Arc (feed, [ Z, 0.0<m>; X, x + centerDeltaX ], arc)
+        Arc (feed, [ Z, -finger.EndAllowance; X, x + centerDeltaX ], arc)
 
     // Start at Z=0. Ends at starting X, Y=-rad, Z=0.
     let cutCurve direction (x : float<m>) =
         seq {
             for y in -rad .. stepover .. board.Thickness - rad do
                 yield RapidMove [ X, x; Y, y ]
-                yield RapidMove [ Z, -rad ]
+                yield RapidMove [ Z, -rad - finger.EndAllowance ]
                 yield curveArcInstruction direction x
             yield RapidMove [ X, x; Y, -rad ]
         }
