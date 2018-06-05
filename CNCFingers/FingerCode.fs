@@ -127,9 +127,15 @@ type private InstructionGenerator(job : JobParameters) =
 
     member this.Instructions() =
         seq {
-            yield RapidMove [ Y, -rad; Z, zClearance ] // Get off the work, in front of the face.
-            yield! cutPockets 0.0<m> // TODO: start at a different spot depending on job setup.
             yield! cutDado
+            yield RapidMove [ Y, -rad; Z, zClearance ] // Get off the work, in front of the face.
+
+            // We cut the first pocket half a width minus one side allowance over.
+            let firstPocketX = finger.FingerWidth * 0.5 - finger.SideAllowance
+            match job.Start with
+            | FingerThenPocket -> yield! cutPockets firstPocketX
+            // First pocket will actually start off the edge of the board. Be sure to allow the tool some space!
+            | PocketThenFinger -> yield! cutPockets (firstPocketX - finger.FingerWidth)
         }
 
 let instructions (job : JobParameters) =
