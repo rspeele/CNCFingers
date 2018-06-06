@@ -53,11 +53,11 @@ type private InstructionGenerator(job : JobParameters) =
             yield RapidMove [ X, x; Y, -rad ]
         }
 
-    /// Assuming we're starting from Y=-rad (tool just off the front face of the board).
+    /// Assuming we're starting from Y=-di (tool just off the front face of the board).
     let cutPocketPass (x : float<m>) =
         [|  Move(feed, [ Y, pocketYMax ])
             Move(feed, [ X, x + deltaXWithinPocket ])
-            Move(feed, [ Y, -rad ])
+            Move(feed, [ Y, -di ])
         |]
 
     /// Get the z positions for progressing downwards by DOC at a time, including both start and finish.
@@ -70,12 +70,13 @@ type private InstructionGenerator(job : JobParameters) =
                 yield finish
         }
 
-    /// Assuming we're starting from Y=-rad and Z=0. Repeatedly runs cutPocketPass stepping down the Z-axis.
+    /// Repeatedly runs cutPocketPass stepping down the Z-axis.
     let cutPocket (x : float<m>) =
         seq {
             yield RapidMove [ Z, zClearance ]
+            yield RapidMove [ X, x; Y, -di ]
             for z in zPasses (-doc) (-board.Thickness) do
-                yield RapidMove [ Y, -rad; X, x ]
+                yield RapidMove [ Y, -di; X, x ]
                 yield RapidMove [ Z, z ]
                 yield! cutPocketPass x
 
