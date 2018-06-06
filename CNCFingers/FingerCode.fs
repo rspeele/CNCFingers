@@ -20,10 +20,12 @@ type private InstructionGenerator(job : JobParameters) =
     /// must equal the board thickness. At 0 we already cut the tool diameter deep. So we need to subtract the diameter.
     let pocketYMax = board.Thickness - di
 
+    /// Only hypothetical, doesn't include trimming for 
+    let fingerWidth = board.Width / float finger.Count
     // Notice that this cut adds the side allowance. This BOTH makes the cut wider by the allowance, and
     // makes the next finger thinner by the allowance. Thus, even though we only add it once, fingers and cuts
     // made in this way will have the full allowance on both sides.
-    let deltaXWithinPocket = finger.FingerWidth + finger.SideAllowance - di
+    let deltaXWithinPocket = fingerWidth + finger.SideAllowance - di
 
     // Cuts up and to the right right if direction is Clockwise, otherwise up and to the left.
     let curveArcInstruction direction (x : float<m>) =
@@ -90,7 +92,7 @@ type private InstructionGenerator(job : JobParameters) =
     let cutPockets (startX : float<m>) =
         // Displacement between the left side edge of each pocket. Allowances are not involved in this, as that would
         // change the fingers/distance, and end up with unaligned fingers at the far end of the board.
-        let l2lDisplacement = finger.FingerWidth * 2.0
+        let l2lDisplacement = fingerWidth * 2.0
         seq {
             for x in startX .. l2lDisplacement .. board.Width do
                 yield! cutPocket x
@@ -103,7 +105,7 @@ type private InstructionGenerator(job : JobParameters) =
         seq {
             yield RapidMove [ Z, zClearance ]
 
-            let distanceFromEdges = finger.FingerWidth / 3.0
+            let distanceFromEdges = fingerWidth / 3.0
 
             let leftX = distanceFromEdges
             let rightX = board.Width - distanceFromEdges - di
@@ -132,11 +134,11 @@ type private InstructionGenerator(job : JobParameters) =
             yield RapidMove [ Y, -rad ] // Get in front of the work.
 
             // We cut the first pocket half a width minus one side allowance over.
-            let firstPocketX = finger.FingerWidth * 0.5 - finger.SideAllowance
+            let firstPocketX = fingerWidth * 0.5 - finger.SideAllowance
             match job.Start with
             | FingerThenPocket -> yield! cutPockets firstPocketX
             // First pocket will actually start off the edge of the board. Be sure to allow the tool some space!
-            | PocketThenFinger -> yield! cutPockets (firstPocketX - finger.FingerWidth)
+            | PocketThenFinger -> yield! cutPockets (firstPocketX - fingerWidth)
         }
 
 let instructions (job : JobParameters) =

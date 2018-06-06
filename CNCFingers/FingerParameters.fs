@@ -22,8 +22,9 @@ type ToolParameters =
     }
 
 type FingerParameters =
-    {   /// Finger width BEFORE trimming for allowances. Board width should be FingerWidth * N where N is an integer.
-        FingerWidth : float<m>
+    {   
+        /// The sum of fingers and pockets that the board width will be divided into.
+        Count : int
         /// Theoretical X-axis gap between the side of a finger and the wall of the cutout it fits into.
         SideAllowance : float<m>
         /// Theoretical Y-axis gap between the curved top of a finger and the curved end of the cutout it fits into.

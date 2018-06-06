@@ -6,6 +6,7 @@ open FSharp.Data.UnitSystems.SI.UnitSymbols
 [<EntryPoint>]
 let main argv =
     let inch = 0.0254<m>
+    let thou = inch / 1000.0
     let minute = 60.0<s>
     let parameters = 
         let diameter = inch / 4.0
@@ -23,11 +24,11 @@ let main argv =
                     Thickness = inch
                 }
             Finger =
-                {   FingerWidth = boardWidth / 12.0
-                    SideAllowance = 0.0001<m>
-                    EndAllowance = 0.0001<m>
+                {   Count = 12
+                    SideAllowance = 4.0 * thou
+                    EndAllowance = 4.0 * thou
                 }
-            Start = PocketThenFinger
+            Start = FingerThenPocket
         }
     let machine =
         {   Unit = Millimeters
