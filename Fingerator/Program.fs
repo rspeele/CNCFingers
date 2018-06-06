@@ -5,27 +5,29 @@ open FSharp.Data.UnitSystems.SI.UnitSymbols
 
 [<EntryPoint>]
 let main argv =
+    let inch = 0.0254<m>
+    let minute = 60.0<s>
     let parameters = 
-        let diameter = 0.00635<m>
-        let boardWidth = 0.3<m>
+        let diameter = inch / 4.0
+        let boardWidth = 6.0 * inch
         {   Tool =
                 {   Diameter = diameter
-                    StepOver = 0.1
+                    StepOver = 0.2
                     DepthOfCut = diameter * 0.5
-                    FeedRate = 0.025<m/s>
-                    PlungeRate = 0.0125<m/s>
+                    FeedRate = 60.0 * inch / minute
+                    PlungeRate = 20.0 * inch / minute
                     RampFactor = 2.0
                 }
             Board =
                 {   Width = boardWidth
-                    Thickness = 0.0254<m>
+                    Thickness = inch
                 }
             Finger =
-                {   FingerWidth = boardWidth / 20.0
+                {   FingerWidth = boardWidth / 12.0
                     SideAllowance = 0.0001<m>
                     EndAllowance = 0.0001<m>
                 }
-            Start = FingerThenPocket
+            Start = PocketThenFinger
         }
     let machine =
         {   Unit = Millimeters

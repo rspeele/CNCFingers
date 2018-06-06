@@ -128,7 +128,8 @@ type private InstructionGenerator(job : JobParameters) =
     member this.Instructions() =
         seq {
             yield! cutDado
-            yield RapidMove [ Y, -rad; Z, zClearance ] // Get off the work, in front of the face.
+            yield RapidMove [ Z, zClearance ] // Get off the work
+            yield RapidMove [ Y, -rad ] // Get in front of the work.
 
             // We cut the first pocket half a width minus one side allowance over.
             let firstPocketX = finger.FingerWidth * 0.5 - finger.SideAllowance
