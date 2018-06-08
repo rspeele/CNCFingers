@@ -36,6 +36,10 @@ type FingerParameters =
 type JobStart =
     | FingerThenPocket
     | PocketThenFinger
+    override this.ToString() =
+        match this with
+        | FingerThenPocket -> "FingerThenPocket"
+        | PocketThenFinger -> "PocketThenFinger"
 
 type JobParameters =
     {   Board : BoardParameters

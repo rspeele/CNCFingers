@@ -15,8 +15,8 @@ let main argv =
                 {   Diameter = diameter
                     StepOver = 0.2
                     DepthOfCut = diameter * 0.5
-                    FeedRate = 60.0 * inch / minute
-                    PlungeRate = 20.0 * inch / minute
+                    FeedRate = 40.0 * inch / minute
+                    PlungeRate = 15.0 * inch / minute
                     RampFactor = 2.0
                 }
             Board =
@@ -24,7 +24,7 @@ let main argv =
                     Thickness = inch
                 }
             Finger =
-                {   Count = 12
+                {   Count = 6
                     SideAllowance = 4.0 * thou
                     EndAllowance = 4.0 * thou
                 }
@@ -33,9 +33,10 @@ let main argv =
     let machine =
         {   Unit = Millimeters
         }
-    let instructions = FingerCode.instructions parameters
-    use output = new StreamWriter(File.Create("fingers.gcode"))
-    for instruction in instructions do
-        let gcode = instruction.ToGCode(machine)
-        output.WriteLine(gcode)
+    for start in [ FingerThenPocket; PocketThenFinger ] do
+        let instructions = FingerCode.instructions { parameters with Start = start }
+        use output = new StreamWriter(File.Create(string start + ".gcode"))
+        for instruction in instructions do
+            let gcode = instruction.ToGCode(machine)
+            output.WriteLine(gcode)
     0 // return an integer exit code

@@ -27,6 +27,9 @@ type private InstructionGenerator(job : JobParameters) =
     // made in this way will have the full allowance on both sides.
     let deltaXWithinPocket = fingerWidth + finger.SideAllowance - di
 
+    // Within .01mm
+    let (=~=) x y = abs (x - y) < 0.000_01<m>
+
     // Cuts up and to the right right if direction is Clockwise, otherwise up and to the left.
     let curveArcInstruction direction (x : float<m>) =
         // We ignore the DOC setting here, which is _wrong_, but shouldn't be _disastrous_. This is because the
@@ -55,10 +58,19 @@ type private InstructionGenerator(job : JobParameters) =
 
     /// Assuming we're starting from Y=-di (tool just off the front face of the board).
     let cutPocketPass (x : float<m>) =
-        [|  Move(feed, [ Y, pocketYMax ])
-            Move(feed, [ X, x + deltaXWithinPocket ])
-            Move(feed, [ Y, -di ])
-        |]
+        seq {
+            yield Move(feed, [ Y, pocketYMax ])
+            if x =~= 0.0<m> then
+                // We are at the left edge of the board: eliminate the little |/ stickout with a quick back-and-forth
+                yield Move(feed, [ X, -di ])
+                yield RapidMove [ X, x ]
+            yield Move(feed, [ X, x + deltaXWithinPocket ])
+            if x + fingerWidth =~= board.Width then
+                // We are the right edge of the board: eliminate the little \| stickout with a quick forth-and-back
+                yield Move(feed, [ X, board.Width ])
+                yield RapidMove [ X, x + deltaXWithinPocket ]
+            yield Move(feed, [ Y, -di ])
+        }
 
     /// Get the z positions for progressing downwards by DOC at a time, including both start and finish.
     let zPasses start finish =
@@ -95,7 +107,7 @@ type private InstructionGenerator(job : JobParameters) =
         // change the fingers/distance, and end up with unaligned fingers at the far end of the board.
         let l2lDisplacement = fingerWidth * 2.0
         seq {
-            for x in startX .. l2lDisplacement .. board.Width do
+            for x in startX .. l2lDisplacement .. (board.Width - di) do
                 yield! cutPocket x
         }
 
@@ -134,12 +146,11 @@ type private InstructionGenerator(job : JobParameters) =
             yield RapidMove [ Z, zClearance ] // Get off the work
             yield RapidMove [ Y, -rad ] // Get in front of the work.
 
-            // We cut the first pocket half a width minus one side allowance over.
-            let firstPocketX = fingerWidth * 0.5 - finger.SideAllowance
             match job.Start with
-            | FingerThenPocket -> yield! cutPockets firstPocketX
-            // First pocket will actually start off the edge of the board. Be sure to allow the tool some space!
-            | PocketThenFinger -> yield! cutPockets (firstPocketX - fingerWidth)
+            | PocketThenFinger ->
+                yield! cutPockets 0.0<m>
+            | FingerThenPocket ->
+                yield! cutPockets fingerWidth
         }
 
 let instructions (job : JobParameters) =
