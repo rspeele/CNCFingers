@@ -53,6 +53,10 @@ type private InstructionGenerator(job : JobParameters) =
                 yield RapidMove [ X, x; Y, y ]
                 yield RapidMove [ Z, -rad - finger.EndAllowance ]
                 yield curveArcInstruction direction x
+                if direction = Clockwise && not (x =~= 0.0<m>) then
+                    // We are cutting a back-curve. Go ahead and trim off the top excess (end allowance)
+                    // from the previous cut, too.
+                    yield Move(feed, [ X, x - fingerWidth ])
             yield RapidMove [ X, x; Y, -rad ]
         }
 
