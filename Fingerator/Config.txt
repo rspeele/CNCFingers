@@ -1,0 +1,48 @@
+﻿--------------------------------------------------------
+-- Important settings. 
+-- Should definitely review these before generating your G-Code.
+--------------------------------------------------------
+
+-- What is the native unit of the machine?
+machine.unit = mm
+
+-- How big is the board we're cutting?
+board.width = 6 inches
+board.thickness = 0.25 inches
+
+-- Note that the size of a finger is determined by both board.width and finger.count.
+-- Finger count includes both ups and downs, so for example
+-- the below diagram represents output from finger.count = 6
+--
+--             2   4   6
+--             _   _   _
+--           _| |_| |_| |
+--
+--           1   3   5
+
+finger.count = 6
+
+-- Whatcha cutting your board with? It should be an end mill, but what size?
+-- What feedrate and depth of cut are you OK with?
+
+tool.diameter = 0.125 inches
+tool.depthofcut = 0.05 inches
+tool.feedrate = 30 in/min
+tool.plungerate = 15 in/min
+
+--------------------------------------------------------
+-- Unimportant/constant settings.
+-- Shouldn't be necessary to change these in most cases.
+--------------------------------------------------------
+
+-- Step over X times the diameter of the bit for each carving pass.
+tool.stepover = 0.2
+
+-- When ramping down while plunging, ramp over a distance X times the diameter of the bit.
+tool.rampfactor = 2.0
+
+-- Gap on the sides of the fingers.
+finger.sideallowance = 4 thou
+
+-- Gap on the ends of the fingers.
+finger.endallowance = 4 thou

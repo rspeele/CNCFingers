@@ -85,8 +85,36 @@ module private Guts =
                 minutes
             ]
 
-    let ws = spaces
-    let ws1 = spaces1
+    let machineUnitMode : Parser<MachineUnitMode> =
+        choice
+            [   millimeters >>% Millimeters
+                inches >>% Inches
+            ]
+
+    /// A line comment begins with -- and continues through the end of the line.
+    let private lineComment =
+        pstring "--" >>. restOfLine true |>> ignore
+
+    /// A block comment begins with /* and continues until a trailing */ is found.
+    /// Nested block comments are not allowed, so additional /* tokens found
+    /// after the first are ignored.
+    let private blockComment =
+        pstring "/*" >>. skipCharsTillString "*/" true System.Int32.MaxValue
+
+    /// Where whitespace is expected, it can be one of...
+    let private whitespaceUnit =
+        choice
+            [   lineComment // a line comment
+                blockComment // a block comment
+                spaces1 // one or more whitespace characters
+            ] <?> "whitespace"
+
+    /// Optional whitespace: 0 or more whitespace units
+    let ws = skipMany whitespaceUnit
+
+    /// Required whitespace: 1 or more whitespace units
+    let ws1 = skipMany1 whitespaceUnit
+
     let number = pfloat
 
     let distance =
@@ -103,8 +131,76 @@ module private Guts =
 
     type ConfigEdit = JobParameters -> JobParameters
 
-    let distanceEdit name edit =
-        pstringCI name >>. ws >>. pchar '=' >>. ws >>. distance |>> edit
+    let someEdit parser name edit =
+        pstringCI name >>. ws >>. pchar '=' >>. ws >>. parser |>> edit
+
+    let scaleEdit = someEdit number
+    let distanceEdit = someEdit distance
+    let speedEdit = someEdit speed
 
     let toolDiameter : Parser<ConfigEdit> =
         distanceEdit "tool.diameter" (fun d job -> { job with Tool = { job.Tool with Diameter = d } })
+
+    let toolStepOver : Parser<ConfigEdit> =
+        scaleEdit "tool.stepover" (fun s job -> { job with Tool = { job.Tool with StepOver = s } })
+
+    let toolDepthOfCut : Parser<ConfigEdit> =
+        distanceEdit "tool.depthofcut" (fun doc job -> { job with Tool = { job.Tool with DepthOfCut = doc } })
+
+    let toolFeedRate : Parser<ConfigEdit> =
+        speedEdit "tool.feedrate" (fun feed job -> { job with Tool = { job.Tool with FeedRate = feed } })
+
+    let toolPlungeRate : Parser<ConfigEdit> =
+        speedEdit "tool.plungerate" (fun plunge job -> { job with Tool = { job.Tool with PlungeRate = plunge } })
+
+    let toolRampFactor : Parser<ConfigEdit> =
+        scaleEdit "tool.rampfactor" (fun ramp job -> { job with Tool = { job.Tool with RampFactor = ramp } })
+
+    let boardWidth : Parser<ConfigEdit> =
+        distanceEdit "board.width" (fun width job -> { job with Board = { job.Board with Width = width } })
+
+    let boardThickness : Parser<ConfigEdit> =
+        distanceEdit "board.thickness" (fun thick job -> { job with Board = { job.Board with Thickness = thick} })
+
+    let fingerCount : Parser<ConfigEdit> =
+        someEdit pint32 "finger.count" (fun count job -> { job with Finger = { job.Finger with Count = count } })
+
+    let fingerSideAllowance : Parser<ConfigEdit> =
+        distanceEdit "finger.sideallowance"
+            (fun allow job -> { job with Finger = { job.Finger with SideAllowance = allow } })
+
+    let fingerEndAllowance : Parser<ConfigEdit> =
+        distanceEdit "finger.endallowance"
+            (fun allow job -> { job with Finger = { job.Finger with EndAllowance = allow } })
+
+    let machineUnit : Parser<ConfigEdit> =
+        someEdit machineUnitMode "machine.unit"
+            (fun mode job -> { job with Machine = { job.Machine with Unit = mode } })
+
+    let configEdit =
+        choice
+            [   toolDiameter
+                toolStepOver
+                toolDepthOfCut
+                toolFeedRate
+                toolPlungeRate
+                toolRampFactor
+                boardWidth
+                boardThickness
+                fingerCount
+                fingerSideAllowance
+                fingerEndAllowance
+                machineUnit
+            ]
+
+    let jobParameters =
+        ws
+        >>. sepEndBy configEdit ws1
+        .>> eof
+        |>> fun edits -> edits |> Seq.fold (|>) Config.defaultJob
+
+let parseJob (str : string) (name : string) =
+    let result = runParserOnString Guts.jobParameters () name str
+    match result with
+    | Success (statements, _, _) -> statements
+    | Failure (msg, _, _) -> failwith msg

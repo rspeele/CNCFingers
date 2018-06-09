@@ -22,8 +22,7 @@ type ToolParameters =
     }
 
 type FingerParameters =
-    {   
-        /// The sum of fingers and pockets that the board width will be divided into.
+    {   /// The sum of fingers and pockets that the board width will be divided into.
         Count : int
         /// Theoretical X-axis gap between the side of a finger and the wall of the cutout it fits into.
         SideAllowance : float<m>
@@ -45,5 +44,6 @@ type JobParameters =
     {   Board : BoardParameters
         Tool : ToolParameters
         Finger : FingerParameters
+        Machine : Machine
         Start : JobStart
     }

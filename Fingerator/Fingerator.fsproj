@@ -6,10 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Config.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Config.fs" />
     <Compile Include="Parsing.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+
+  <ItemGroup />
 
   <ItemGroup>
     <PackageReference Include="fparsec" Version="1.0.3" />

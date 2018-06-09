@@ -20,6 +20,9 @@ let defaultJob =
                 SideAllowance = 0.004 * 0.0254<m>
                 EndAllowance = 0.004 * 0.0254<m>
             }
+        Machine =
+            {   Unit = Millimeters
+            }
         Start = FingerThenPocket
     }
 
