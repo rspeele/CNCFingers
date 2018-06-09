@@ -57,6 +57,10 @@ type private InstructionGenerator(job : JobParameters) =
                     // We are cutting a back-curve. Go ahead and trim off the top excess (end allowance)
                     // from the previous cut, too.
                     yield Move(feed, [ X, x - fingerWidth ])
+                elif direction = CounterClockwise && (x > board.Width - fingerWidth * 2.0) then
+                    // We are cutting the last finger on the right. Trim off the top excess since we won't do
+                    // a back-curve and hit the above path to do it.
+                    yield Move(feed, [ X, x + fingerWidth ])
             yield RapidMove [ X, x; Y, -rad ]
         }
 
