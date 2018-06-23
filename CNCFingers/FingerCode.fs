@@ -49,11 +49,14 @@ type private InstructionGenerator(job : JobParameters) =
     // Start at Z=0. Ends at starting X, Y=-rad, Z=0.
     let cutCurve direction (x : float<m>) =
         seq {
+            // Check for shortcut, don't both creating a back-curve in thin air on the far left where we've just cut out
+            // a pocket.
+            if direction = Clockwise && x =~= 0.0<m> then () else
             for y in -rad .. stepover .. pocketYMax do
                 yield RapidMove [ X, x; Y, y ]
                 yield RapidMove [ Z, -rad - finger.EndAllowance ]
                 yield curveArcInstruction direction x
-                if direction = Clockwise && not (x =~= 0.0<m>) then
+                if direction = Clockwise then
                     // We are cutting a back-curve. Go ahead and trim off the top excess (end allowance)
                     // from the previous cut, too.
                     yield Move(feed, [ X, x - fingerWidth ])
