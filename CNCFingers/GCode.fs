@@ -32,7 +32,7 @@ type ArcDirection =
 type ArcParameters =
     {   Plane : Plane
         Direction : ArcDirection
-        /// On axes of the selected plan. Relative to current position.
+        /// On axes of the selected plane. Relative to current position.
         Center : float<m> * float<m>
     }
 

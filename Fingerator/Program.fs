@@ -26,6 +26,7 @@ let main argv =
                             )
                     use output = new StreamWriter(File.Create(outputName))
                     for instruction in instructions do
+                        let instruction = job.Transform instruction
                         let gcode = instruction.ToGCode(job.Machine)
                         output.WriteLine(gcode)
         0

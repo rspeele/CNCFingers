@@ -48,10 +48,13 @@ type JobStart =
         | FingerThenPocket -> "FingerThenPocket"
         | PocketThenFinger -> "PocketThenFinger"
 
+[<NoEquality>]
+[<NoComparison>]
 type JobParameters =
     {   Board : BoardParameters
         Tool : ToolParameters
         Finger : FingerParameters
         Machine : Machine
         Start : JobStart
+        Transform : Instruction -> Instruction
     }

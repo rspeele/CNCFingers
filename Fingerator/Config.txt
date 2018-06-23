@@ -51,3 +51,33 @@ finger.endallowance = 4 thou
 -- cutting into. But in case you don't, this is set to 0 by default. Change it to a few thou if you know what you're
 -- doing and have a spoil board, you'll get better results.
 finger.spoildepth = 0 thou
+
+-- Rotate/mirror the G-code for different job setups.
+-- Default is no rotation. Fingers will be cut left-to-right along the front of the board
+-- facing the machine operator, like so:
+--
+--    +---------------------+
+--    |     CNC MACHINE     |
+--    |                     |
+--    |     +-----------+   |
+--    |     |           |   |
+--    |     |   BOARD   |   |
+--    |     |           |   |
+--   ^|     |           |   |
+--   ||     F I N G E R S   |   Note: zero tool @ front left of the board, on the F in this pic.
+--   Y|                     |   @0,0, left and front edges of the board should both be tangent to the round cutter.
+--    +---------------------+
+--     X-->   
+--             O
+--            \|/
+--             |    OPERATOR (you)
+--            / \
+
+gcode.transform = identity
+
+---- To cut front-to-back along the right edge of the board you could rotate 270 degrees clockwise:
+-- gcode.transform = clockwise270
+
+---- You an also combine transforms. For example, to cut back-to-front on the left edge, a 90* clockwise
+---- rotation would work, but if you wanted to cut front-to-back, you could flip the Y axis too:
+-- gcode.transform = clockwise90, mirrorY

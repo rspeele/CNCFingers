@@ -129,6 +129,23 @@ module private Guts =
             (pchar '/' >>. ws >>. timeTransform)
             (fun distance time -> distance / time 1.0)
 
+    let sp = skipMany (skipChar ' ')
+
+    // Post-processing options
+    let postProcessStep : Parser<Instruction -> Instruction> =
+        choice
+            [   pstringCI "identity" .>> sp >>% id
+                pstringCI "clockwise90" .>> sp >>% GCodeTransform.clockwise90
+                pstringCI "clockwise180" .>> sp >>% GCodeTransform.clockwise180
+                pstringCI "clockwise270" .>> sp >>% GCodeTransform.clockwise270
+                pstringCI "mirrorX" .>> sp >>% GCodeTransform.mirrorX
+                pstringCI "mirrorY" .>> sp >>% GCodeTransform.mirrorY
+            ]
+
+    let postProcessPipeline =
+        sepEndBy postProcessStep (pchar ',' >>. sp)
+        |>> List.fold (>>) id
+
     type ConfigEdit = JobParameters -> JobParameters
 
     let someEdit parser name edit =
@@ -181,6 +198,10 @@ module private Guts =
         someEdit machineUnitMode "machine.unit"
             (fun mode job -> { job with Machine = { job.Machine with Unit = mode } })
 
+    let transform : Parser<ConfigEdit> =
+        someEdit postProcessPipeline "gcode.transform"
+            (fun xform job -> { job with Transform = xform })
+
     let configEdit =
         choice
             [   toolDiameter
@@ -196,6 +217,7 @@ module private Guts =
                 fingerEndAllowance
                 fingerSpoilDepth
                 machineUnit
+                transform
             ]
 
     let jobParameters =
