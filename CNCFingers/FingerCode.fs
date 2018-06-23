@@ -134,6 +134,8 @@ type private InstructionGenerator(job : JobParameters) =
             // touch the edge of the board, and covers all the places with relevant geometry.
             // In Y, we want to go in just as far as the pockets did.
             yield RapidMove [ X, leftX; Y, pocketYMax ]
+            // Take up the slack (z clearance) rapidly
+            yield RapidMove [ Z, 0.0<m> ]
 
             // Now we need to cut to the depth past the curves atop the fingers, which will be equal to the tool radius
             // plus end allowance.
