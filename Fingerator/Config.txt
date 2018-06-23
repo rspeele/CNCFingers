@@ -46,3 +46,8 @@ finger.sideallowance = 4 thou
 
 -- Gap on the ends of the fingers.
 finger.endallowance = 4 thou
+
+-- How far below the board to go. You should have your board mounted on a "spoil board" that you're ok with
+-- cutting into. But in case you don't, this is set to 0 by default. Change it to a few thou if you know what you're
+-- doing and have a spoil board, you'll get better results.
+finger.spoildepth = 0 thou

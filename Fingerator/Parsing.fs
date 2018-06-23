@@ -173,6 +173,10 @@ module private Guts =
         distanceEdit "finger.endallowance"
             (fun allow job -> { job with Finger = { job.Finger with EndAllowance = allow } })
 
+    let fingerSpoilDepth : Parser<ConfigEdit> =
+        distanceEdit "finger.spoildepth"
+            (fun depth job -> { job with Finger = { job.Finger with SpoilDepth = depth } })
+
     let machineUnit : Parser<ConfigEdit> =
         someEdit machineUnitMode "machine.unit"
             (fun mode job -> { job with Machine = { job.Machine with Unit = mode } })
@@ -190,6 +194,7 @@ module private Guts =
                 fingerCount
                 fingerSideAllowance
                 fingerEndAllowance
+                fingerSpoilDepth
                 machineUnit
             ]
 

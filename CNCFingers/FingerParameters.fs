@@ -28,7 +28,15 @@ type FingerParameters =
         SideAllowance : float<m>
         /// Theoretical Y-axis gap between the curved top of a finger and the curved end of the cutout it fits into.
         /// This is taken off the top of the finger, not out of the cutout.
+        /// Generally it's a good idea to go at least 2-3x the side allowance, especially since
+        /// your Z-axis zero is probably a hair above the work.
         EndAllowance : float<m>
+        /// How far below the work to go when cutting out the fingers.
+        /// 0 is a "safe" default in case you are mounting your board directly on the
+        /// machine bed (not a good idea in any case, but I could see somebody attempting it).
+        /// Best is to mount your board on to of a "spoil board", set this to 4 thou or so, and expect to get a few
+        /// shallow cuts in the spoil board.
+        SpoilDepth : float<m>
     }
 
 /// Run two jobs with the same other parameters but this flipped, in order to make two boards that mate together.

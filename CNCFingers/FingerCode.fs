@@ -95,7 +95,7 @@ type private InstructionGenerator(job : JobParameters) =
         seq {
             yield RapidMove [ Z, zClearance ]
             yield RapidMove [ X, x; Y, -di ]
-            for z in zPasses (-doc) (-board.Thickness) do
+            for z in zPasses (-doc) (-board.Thickness - finger.SpoilDepth) do
                 yield RapidMove [ Y, -di; X, x ]
                 yield RapidMove [ Z, z ]
                 yield! cutPocketPass x

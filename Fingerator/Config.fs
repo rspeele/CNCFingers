@@ -19,6 +19,7 @@ let defaultJob =
             {   Count = 0
                 SideAllowance = 0.004 * 0.0254<m>
                 EndAllowance = 0.004 * 0.0254<m>
+                SpoilDepth = 0.0<m>
             }
         Machine =
             {   Unit = Millimeters
@@ -48,5 +49,7 @@ let validateJob (job : JobParameters) =
         Some "Board thickness unspecified or out of range"
     elif finger.Count <= 0 || float finger.Count > round (board.Width / tool.Diameter) then
         Some "Finger count unspecified or out of range"
+    elif finger.SpoilDepth <= 0.0<m> || finger.SpoilDepth >= 0.002<m> then
+        Some "Finger spoil depth out of range"
     else
         None
