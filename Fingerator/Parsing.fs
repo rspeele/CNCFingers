@@ -146,6 +146,12 @@ module private Guts =
         sepEndBy postProcessStep (pchar ',' >>. sp)
         |>> List.fold (>>) id
 
+    let boolean =
+        choice
+            [   choice [ pstringCI "yes"; pstringCI "true" ] >>% true
+                choice [ pstringCI "no"; pstringCI "false" ] >>% false
+            ]
+
     type ConfigEdit = JobParameters -> JobParameters
 
     let someEdit parser name edit =
@@ -202,6 +208,10 @@ module private Guts =
         distanceEdit "finger.fuzzcut"
             (fun fuzz job -> { job with Finger = { job.Finger with FuzzCut = fuzz } })
 
+    let fingerMulti : Parser<ConfigEdit> =
+        someEdit boolean "finger.multipass"
+            (fun multipass job -> { job with Finger = { job.Finger with Multipass = multipass } })
+
     let machineUnit : Parser<ConfigEdit> =
         someEdit machineUnitMode "machine.unit"
             (fun mode job -> { job with Machine = { job.Machine with Unit = mode } })
@@ -226,6 +236,7 @@ module private Guts =
                 fingerSpoilDepth
                 fingerKickout
                 fingerFuzz
+                fingerMulti
                 machineUnit
                 transform
             ]

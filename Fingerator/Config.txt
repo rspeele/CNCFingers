@@ -22,6 +22,12 @@ board.thickness = 0.25 inches
 
 finger.count = 6
 
+-- If the workpiece is longer than your machine's cutting area, you might have to
+-- make your fingers in multiple passes, moving another section of the board into the
+-- cutting area each time. If so, set multipass to "yes", to disable the parts of the G-Code that
+-- cut off the extra corners on finger cutouts that touch the "end" of the board width.
+finger.multipass = no
+
 -- Whatcha cutting your board with? It should be an end mill, but what size?
 -- What feedrate and depth of cut are you OK with?
 

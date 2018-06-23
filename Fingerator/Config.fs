@@ -17,6 +17,7 @@ let defaultJob =
             }
         Finger =
             {   Count = 0
+                Multipass = false
                 SideAllowance = 0.004 * 0.0254<m>
                 EndAllowance = 0.004 * 0.0254<m>
                 SpoilDepth = 0.0<m>

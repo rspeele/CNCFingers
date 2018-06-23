@@ -24,6 +24,9 @@ type ToolParameters =
 type FingerParameters =
     {   /// The sum of fingers and pockets that the board width will be divided into.
         Count : int
+        /// If true, don't assume the starting/ending pocket is on the edge of the board. Disables
+        /// knocking off the rounded corner.
+        Multipass: bool
         /// Theoretical X-axis gap between the side of a finger and the wall of the cutout it fits into.
         SideAllowance : float<m>
         /// Theoretical Y-axis gap between the curved top of a finger and the curved end of the cutout it fits into.

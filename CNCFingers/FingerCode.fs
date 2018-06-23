@@ -71,12 +71,12 @@ type private InstructionGenerator(job : JobParameters) =
     let cutPocketPass (x : float<m>) =
         seq {
             yield Move(feed, [ Y, pocketYMax ])
-            if x =~= 0.0<m> then
+            if not finger.Multipass && x =~= 0.0<m> then
                 // We are at the left edge of the board: eliminate the little |/ stickout with a quick back-and-forth
                 yield Move(feed, [ X, -di ])
                 yield RapidMove [ X, x ]
             yield Move(feed, [ X, x + deltaXWithinPocket ])
-            if x + fingerWidth =~= board.Width then
+            if not finger.Multipass && x + fingerWidth =~= board.Width then
                 // We are the right edge of the board: eliminate the little \| stickout with a quick forth-and-back
                 yield Move(feed, [ X, board.Width ])
                 yield RapidMove [ X, x + deltaXWithinPocket ]
