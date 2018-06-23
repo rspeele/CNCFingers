@@ -83,18 +83,37 @@ type private InstructionGenerator(job : JobParameters) =
             yield Move(feed, [ Y, -di ])
         }
 
+    let kickout (x : float<m>) =
+        seq {
+            // Go up so we don't take *too* heavy of a DOC in case the thing we're kicking out refuses to cooperate.
+            yield RapidMove [ Z, max (-doc * 1.5) (-board.Thickness) ]
+            // Scoot into the back middle of the cut making a left hook. In theory we won't touch any material while
+            // doing this so we move faster than normal, but not quite at RapidMove speed just in case the waste piece
+            // is floppy.
+            yield Move(feed * 2.0, [ Y, pocketYMax ])
+            yield Move(feed * 2.0, [ X, x + deltaXWithinPocket * 0.5 ])
+            // Come out of the cut from the middle, hopefully breaking the middle piece loose.
+            yield Move(feed, [ Y, -di ])
+        }
+
     /// Get the z positions for progressing downwards by DOC at a time, including both start and finish.
     let zPasses start finish =
         if finish > start then failwith "Nonsense, shouldn't make z-passes bottom to top"
         seq {
-            yield! seq { start .. -doc .. finish }
-            let idealPasses = abs (finish - start) / doc
-            if 0.0001 < abs (idealPasses - round idealPasses) then // throw in a final pass if we weren't evenly divisible
+            let mutable includedFinish = false
+            for z in start .. -doc .. finish do
+                yield z
+                if z <= finish then
+                    includedFinish <- true
+            if not includedFinish then
                 yield finish
         }
 
     /// Repeatedly runs cutPocketPass stepping down the Z-axis.
     let cutPocket (x : float<m>) =
+        let shouldKickout =
+            finger.KickoutThreshold > 0.0<m>
+            && fingerWidth + finger.SideAllowance > tool.Diameter
         seq {
             yield RapidMove [ Z, zClearance ]
             yield RapidMove [ X, x; Y, -di ]
@@ -102,6 +121,9 @@ type private InstructionGenerator(job : JobParameters) =
                 yield RapidMove [ Y, -di; X, x ]
                 yield RapidMove [ Z, z ]
                 yield! cutPocketPass x
+                if shouldKickout && board.Thickness + z <= finger.KickoutThreshold then
+                    yield RapidMove [ Y, -di; X, x ]
+                    yield! kickout x
 
             // Now cut the curves out of each side.
             yield RapidMove [ Z, 0.0<m> ]

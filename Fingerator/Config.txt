@@ -52,6 +52,15 @@ finger.endallowance = 4 thou
 -- doing and have a spoil board, you'll get better results.
 finger.spoildepth = 0 thou
 
+-- If you're cutting big fingers, the toolpath leaves a block in the interior of the cut. Eventually this gets
+-- completely separated from the board, or at least (depending on your spoildepth setting) there will be only a very
+-- thin "onion skin" connecting it to the board. It will flop around and break off easily. Usually this is a non-issue
+-- but occasionally the tool can catch on the floppy waste piece and jam it up against the board, potentially moving
+-- the board slightly if it's not very securely clamped. Therefore it can be good to explicitly program in a step
+-- to "kick out" the waste piece when the onion skin is thin. CNCFingers will do that on the Z-axis pass when the onion
+-- skin thickness becomes less than or equal to this setting, if this setting is greater than 0.
+finger.kickout = 10 thou
+
 -- Rotate/mirror the G-code for different job setups.
 -- Default is no rotation. Fingers will be cut left-to-right along the front of the board
 -- facing the machine operator, like so:

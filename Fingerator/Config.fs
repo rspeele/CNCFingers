@@ -20,6 +20,7 @@ let defaultJob =
                 SideAllowance = 0.004 * 0.0254<m>
                 EndAllowance = 0.004 * 0.0254<m>
                 SpoilDepth = 0.0<m>
+                KickoutThreshold = 0.0<m>
             }
         Machine =
             {   Unit = Millimeters

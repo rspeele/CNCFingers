@@ -194,6 +194,10 @@ module private Guts =
         distanceEdit "finger.spoildepth"
             (fun depth job -> { job with Finger = { job.Finger with SpoilDepth = depth } })
 
+    let fingerKickout : Parser<ConfigEdit> =
+        distanceEdit "finger.kickout"
+            (fun kickout job -> { job with Finger = { job.Finger with KickoutThreshold = kickout } })
+
     let machineUnit : Parser<ConfigEdit> =
         someEdit machineUnitMode "machine.unit"
             (fun mode job -> { job with Machine = { job.Machine with Unit = mode } })
@@ -216,6 +220,7 @@ module private Guts =
                 fingerSideAllowance
                 fingerEndAllowance
                 fingerSpoilDepth
+                fingerKickout
                 machineUnit
                 transform
             ]
