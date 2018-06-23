@@ -173,6 +173,16 @@ type private InstructionGenerator(job : JobParameters) =
                 yield Move(feed, [ X, rightX ]) // Cut the rest of the right straight across.
                 yield RapidMove [ X, leftX + rampDistance ] // Go back to the ramp.
                 yield Move(feed, [ X, leftX ]) // Clear the ramp.
+
+            // In soft wood, you get fuzziness after doing this.
+            // So run a quick couple verrrry thin passes over the edges.
+            if finger.FuzzCut > 0.0<m> then
+                let fuzzTrimSpeed = feed * 2.0
+                yield RapidMove [ Z, -finger.FuzzCut ]
+                yield Move(fuzzTrimSpeed * 2.0, [ Y, pocketYMax + finger.FuzzCut ])
+                yield Move(fuzzTrimSpeed * 2.0, [ X, rightX ])
+                yield Move(fuzzTrimSpeed * 2.0, [ Y, pocketYMax - finger.FuzzCut ])
+                yield Move(fuzzTrimSpeed * 2.0, [ X, leftX ])
         }
 
     member this.Instructions() =

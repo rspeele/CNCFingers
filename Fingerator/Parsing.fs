@@ -198,6 +198,10 @@ module private Guts =
         distanceEdit "finger.kickout"
             (fun kickout job -> { job with Finger = { job.Finger with KickoutThreshold = kickout } })
 
+    let fingerFuzz : Parser<ConfigEdit> =
+        distanceEdit "finger.fuzzcut"
+            (fun fuzz job -> { job with Finger = { job.Finger with FuzzCut = fuzz } })
+
     let machineUnit : Parser<ConfigEdit> =
         someEdit machineUnitMode "machine.unit"
             (fun mode job -> { job with Machine = { job.Machine with Unit = mode } })
@@ -221,6 +225,7 @@ module private Guts =
                 fingerEndAllowance
                 fingerSpoilDepth
                 fingerKickout
+                fingerFuzz
                 machineUnit
                 transform
             ]

@@ -21,6 +21,7 @@ let defaultJob =
                 EndAllowance = 0.004 * 0.0254<m>
                 SpoilDepth = 0.0<m>
                 KickoutThreshold = 0.0<m>
+                FuzzCut = 0.00025<m> // 1/4 mm fast cut to trim fuzz
             }
         Machine =
             {   Unit = Millimeters
@@ -53,5 +54,7 @@ let validateJob (job : JobParameters) =
         Some "Finger count unspecified or out of range"
     elif finger.SpoilDepth <= 0.0<m> || finger.SpoilDepth >= 0.002<m> then
         Some "Finger spoil depth out of range"
+    elif finger.FuzzCut < 0.0<m> || finger.FuzzCut > 0.001<m> then
+        Some "Fuzz cut out of range"
     else
         None

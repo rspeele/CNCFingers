@@ -42,6 +42,8 @@ type FingerParameters =
         /// lean over and interfere with cutting the curves. So it's good to try to get rid of it explicitly.
         /// 0 or less disables the kickout step.
         KickoutThreshold : float<m>
+        /// There tends to be fuzz after cutting the dado. Clear it with a very thin cut -- this depth.
+        FuzzCut : float<m>
     }
 
 /// Run two jobs with the same other parameters but this flipped, in order to make two boards that mate together.

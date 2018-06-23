@@ -59,7 +59,12 @@ finger.spoildepth = 0 thou
 -- the board slightly if it's not very securely clamped. Therefore it can be good to explicitly program in a step
 -- to "kick out" the waste piece when the onion skin is thin. CNCFingers will do that on the Z-axis pass when the onion
 -- skin thickness becomes less than or equal to this setting, if this setting is greater than 0.
-finger.kickout = 10 thou
+finger.kickout = 5 thou
+
+-- If cutting soft wood, you want to make some trimming passes to clean up fuzz on the dado. This will otherwise
+-- interfere with the fit or at minimum look ugly. The trim pass depth should be very low, just enough to touch the fuzz
+-- and separate it from the wood.
+finger.fuzzcut = 1 thou
 
 -- Rotate/mirror the G-code for different job setups.
 -- Default is no rotation. Fingers will be cut left-to-right along the front of the board
