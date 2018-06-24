@@ -62,18 +62,26 @@ type private InstructionGenerator(job : JobParameters) =
             let farRight = board.Width - di
             if not finger.Multipass && direction = CounterClockwise && (x =~= farRight || x > farRight) then () else
             // Ok, now the main part.
-            for y in -rad .. stepover .. pocketYMax - rad do
+            let yPasses = [| -rad .. stepover .. pocketYMax - rad |]
+            let mutable previousSlicePass = -1.0<m>
+            for i in 0 .. yPasses.Length - 1 do
+                let y = yPasses.[i]
                 yield RapidMove [ X, x; Y, y ]
                 yield RapidMove [ Z, -rad - finger.EndAllowance ]
                 yield curveArcInstruction direction x
-                if direction = Clockwise then
-                    // We are cutting a back-curve. Go ahead and trim off the top excess (end allowance)
-                    // from the previous cut, too.
-                    yield Move(scaleFeed finger.EndAllowance, [ X, x - fingerWidth ])
-                elif not finger.Multipass && direction = CounterClockwise && (x > board.Width - fingerWidth * 2.0) then
-                    // We are cutting the last finger on the right. Trim off the top excess since we won't do
-                    // a back-curve and hit the above path to do it.
-                    yield Move(scaleFeed finger.EndAllowance, [ X, x + fingerWidth ])
+                // We don't need to do a trim pass every time, but we do need to do it when we are approaching the
+                // tool diameter away from the last trim pass.
+                if i = yPasses.Length - 1 || y - previousSlicePass >= di - stepover then
+                    if direction = Clockwise then
+                        // We are cutting a back-curve. Go ahead and trim off the top excess (end allowance)
+                        // from the previous cut, too.
+                        yield Move(scaleFeed finger.EndAllowance, [ X, x - fingerWidth ])
+                        previousSlicePass <- y
+                    elif not finger.Multipass && direction = CounterClockwise && (x > board.Width - fingerWidth * 2.0) then
+                        // We are cutting the last finger on the right. Trim off the top excess since we won't do
+                        // a back-curve and hit the above path to do it.
+                        yield Move(scaleFeed finger.EndAllowance, [ X, x + fingerWidth ])
+                        previousSlicePass <- y
             yield RapidMove [ X, x; Y, -rad ]
         }
 
