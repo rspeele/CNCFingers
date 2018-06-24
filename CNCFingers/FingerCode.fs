@@ -171,7 +171,13 @@ type private InstructionGenerator(job : JobParameters) =
             let distanceFromEdges = fingerWidth / 3.0
 
             let leftX = distanceFromEdges
-            let rightX = board.Width - distanceFromEdges - di
+            let rightX =
+                // If we're doing the first of a multipass sequence, we need the groove all the way across to meet
+                // the other groove.
+                if finger.Multipass then
+                    board.Width + distanceFromEdges - rad
+                else
+                    board.Width - distanceFromEdges - di
             // Move over to the starting position. Half a finger in X should be good to ensure the dado both doesn't
             // touch the edge of the board, and covers all the places with relevant geometry.
             // In Y, we want to go in just as far as the pockets did.
