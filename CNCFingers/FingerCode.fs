@@ -51,7 +51,11 @@ type private InstructionGenerator(job : JobParameters) =
         seq {
             // Check for shortcut, don't both creating a back-curve in thin air on the far left where we've just cut out
             // a pocket.
-            if direction = Clockwise && x =~= 0.0<m> then () else
+            if not finger.Multipass && direction = Clockwise && x =~= 0.0<m> then () else
+            // Same on the far right.
+            let farRight = board.Width - di
+            if not finger.Multipass && direction = CounterClockwise && x =~= farRight || x > farRight then () else
+            // Ok, now the main part.
             for y in -rad .. stepover .. pocketYMax do
                 yield RapidMove [ X, x; Y, y ]
                 yield RapidMove [ Z, -rad - finger.EndAllowance ]
@@ -60,7 +64,7 @@ type private InstructionGenerator(job : JobParameters) =
                     // We are cutting a back-curve. Go ahead and trim off the top excess (end allowance)
                     // from the previous cut, too.
                     yield Move(feed, [ X, x - fingerWidth ])
-                elif direction = CounterClockwise && (x > board.Width - fingerWidth * 2.0) then
+                elif not finger.Multipass && direction = CounterClockwise && (x > board.Width - fingerWidth * 2.0) then
                     // We are cutting the last finger on the right. Trim off the top excess since we won't do
                     // a back-curve and hit the above path to do it.
                     yield Move(feed, [ X, x + fingerWidth ])
