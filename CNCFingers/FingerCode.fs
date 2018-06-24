@@ -60,7 +60,7 @@ type private InstructionGenerator(job : JobParameters) =
             if not finger.Multipass && direction = Clockwise && x =~= 0.0<m> then () else
             // Same on the far right.
             let farRight = board.Width - di
-            if not finger.Multipass && direction = CounterClockwise && x =~= farRight || x > farRight then () else
+            if not finger.Multipass && direction = CounterClockwise && (x =~= farRight || x > farRight) then () else
             // Ok, now the main part.
             for y in -rad .. stepover .. pocketYMax do
                 yield RapidMove [ X, x; Y, y ]
