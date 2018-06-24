@@ -19,6 +19,10 @@ type ToolParameters =
         PlungeRate : float<m/s>
         /// As a multiple of tool diameter. 2.0 a good choice.
         RampFactor : float
+        /// Feed rate will scale with depth of cut up to this maximum multiplier.
+        /// e.g. suppose this is 3.0. A cut half as deep as the normal DOC will move 2x as fast,
+        /// but a cut 1/10 as deep as the normal DOC will only move 3x as fast not 10x.
+        MaxScaleFeedRate : float
     }
 
 type FingerParameters =

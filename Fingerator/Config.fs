@@ -10,6 +10,7 @@ let defaultJob =
                 FeedRate = 0.0<m/s>
                 PlungeRate = 0.0<m/s>
                 RampFactor = 2.0
+                MaxScaleFeedRate = 2.0
             }
         Board =
             {   Width = 0.0<m>

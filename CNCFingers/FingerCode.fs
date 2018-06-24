@@ -30,6 +30,12 @@ type private InstructionGenerator(job : JobParameters) =
     // Within .01mm
     let (=~=) x y = abs (x - y) < 0.000_01<m>
 
+    let scaleFeed (forDoc : float<m>) =
+        if forDoc <= 0.0<m> then feed else
+        let scale = doc / forDoc
+        if scale < 1.0 then feed
+        else feed * (min tool.MaxScaleFeedRate scale)
+
     // Cuts up and to the right right if direction is Clockwise, otherwise up and to the left.
     let curveArcInstruction direction (x : float<m>) =
         // We ignore the DOC setting here, which is _wrong_, but shouldn't be _disastrous_. This is because the
@@ -63,11 +69,11 @@ type private InstructionGenerator(job : JobParameters) =
                 if direction = Clockwise then
                     // We are cutting a back-curve. Go ahead and trim off the top excess (end allowance)
                     // from the previous cut, too.
-                    yield Move(feed, [ X, x - fingerWidth ])
+                    yield Move(scaleFeed finger.EndAllowance, [ X, x - fingerWidth ])
                 elif not finger.Multipass && direction = CounterClockwise && (x > board.Width - fingerWidth * 2.0) then
                     // We are cutting the last finger on the right. Trim off the top excess since we won't do
                     // a back-curve and hit the above path to do it.
-                    yield Move(feed, [ X, x + fingerWidth ])
+                    yield Move(scaleFeed finger.EndAllowance, [ X, x + fingerWidth ])
             yield RapidMove [ X, x; Y, -rad ]
         }
 
