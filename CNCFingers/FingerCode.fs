@@ -78,19 +78,19 @@ type private InstructionGenerator(job : JobParameters) =
         }
 
     /// Assuming we're starting from Y=-di (tool just off the front face of the board).
-    let cutPocketPass (x : float<m>) =
+    let cutPocketPass (x : float<m>) rate =
         seq {
-            yield Move(feed, [ Y, pocketYMax ])
+            yield Move(rate, [ Y, pocketYMax ])
             if not finger.Multipass && x =~= 0.0<m> then
                 // We are at the left edge of the board: eliminate the little |/ stickout with a quick back-and-forth
-                yield Move(feed, [ X, -di ])
+                yield Move(rate, [ X, -di ])
                 yield RapidMove [ X, x ]
             yield Move(feed, [ X, x + deltaXWithinPocket ])
             if not finger.Multipass && x + fingerWidth =~= board.Width then
                 // We are the right edge of the board: eliminate the little \| stickout with a quick forth-and-back
-                yield Move(feed, [ X, board.Width ])
+                yield Move(rate, [ X, board.Width ])
                 yield RapidMove [ X, x + deltaXWithinPocket ]
-            yield Move(feed, [ Y, -di ])
+            yield Move(rate, [ Y, -di ])
         }
 
     let kickout (x : float<m>) =
@@ -110,13 +110,12 @@ type private InstructionGenerator(job : JobParameters) =
     let zPasses start finish =
         if finish > start then failwith "Nonsense, shouldn't make z-passes bottom to top"
         seq {
-            let mutable includedFinish = false
+            let mutable previous = start
             for z in start .. -doc .. finish do
-                yield z
-                if z <= finish then
-                    includedFinish <- true
-            if not includedFinish then
-                yield finish
+                yield z, feed
+                previous <- z
+            if previous <> finish then
+                yield finish, scaleFeed (abs (finish - previous))
         }
 
     /// Repeatedly runs cutPocketPass stepping down the Z-axis.
@@ -127,10 +126,10 @@ type private InstructionGenerator(job : JobParameters) =
         seq {
             yield RapidMove [ Z, zClearance ]
             yield RapidMove [ X, x; Y, -di ]
-            for z in zPasses (-doc) (-board.Thickness - finger.SpoilDepth) do
+            for z, rate in zPasses (-doc) (-board.Thickness - finger.SpoilDepth) do
                 yield RapidMove [ Y, -di; X, x ]
                 yield RapidMove [ Z, z ]
-                yield! cutPocketPass x
+                yield! cutPocketPass x rate
                 if shouldKickout && board.Thickness + z <= finger.KickoutThreshold then
                     yield RapidMove [ Y, -di; X, x ]
                     yield! kickout x
@@ -178,21 +177,21 @@ type private InstructionGenerator(job : JobParameters) =
 
             let rampDistance = tool.Diameter * tool.RampFactor
 
-            for z in zPasses (-doc) finalZ do
+            for z, rate in zPasses (-doc) finalZ do
                 yield Move(tool.PlungeRate, [ X, leftX + rampDistance; Z, z ]) // Ramp down to the right.
-                yield Move(feed, [ X, rightX ]) // Cut the rest of the right straight across.
+                yield Move(rate, [ X, rightX ]) // Cut the rest of the right straight across.
                 yield RapidMove [ X, leftX + rampDistance ] // Go back to the ramp.
-                yield Move(feed, [ X, leftX ]) // Clear the ramp.
+                yield Move(rate, [ X, leftX ]) // Clear the ramp.
 
             // In soft wood, you get fuzziness after doing this.
             // So run a quick couple verrrry thin passes over the edges.
             if finger.FuzzCut > 0.0<m> then
-                let fuzzTrimSpeed = feed * 2.0
+                let fuzzTrimSpeed = scaleFeed finger.FuzzCut
                 yield RapidMove [ Z, -finger.FuzzCut ]
-                yield Move(fuzzTrimSpeed * 2.0, [ Y, pocketYMax + finger.FuzzCut ])
-                yield Move(fuzzTrimSpeed * 2.0, [ X, rightX ])
-                yield Move(fuzzTrimSpeed * 2.0, [ Y, pocketYMax - finger.FuzzCut ])
-                yield Move(fuzzTrimSpeed * 2.0, [ X, leftX ])
+                yield Move(fuzzTrimSpeed, [ Y, pocketYMax + finger.FuzzCut ])
+                yield Move(fuzzTrimSpeed, [ X, rightX ])
+                yield Move(fuzzTrimSpeed, [ Y, pocketYMax - finger.FuzzCut ])
+                yield Move(fuzzTrimSpeed, [ X, leftX ])
         }
 
     member this.Instructions() =
