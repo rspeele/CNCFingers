@@ -47,6 +47,11 @@ tool.stepover = 0.2
 -- When ramping down while plunging, ramp over a distance X times the diameter of the bit.
 tool.rampfactor = 2.0
 
+-- Scale feed rate up to this time the base, proportionally with the depth of cut.
+-- I.E. a cut half the specified tool.depthofcut could feed 2x faster, but this
+-- cap prevents a cut 1/10 of tool.depthofcut from moving 10x faster.
+tool.maxscalefeedrate = 2.0
+
 -- Gap on the sides of the fingers.
 finger.sideallowance = 4 thou
 

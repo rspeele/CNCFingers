@@ -179,6 +179,9 @@ module private Guts =
     let toolRampFactor : Parser<ConfigEdit> =
         scaleEdit "tool.rampfactor" (fun ramp job -> { job with Tool = { job.Tool with RampFactor = ramp } })
 
+    let toolScaleFeedRate : Parser<ConfigEdit> =
+        scaleEdit "tool.maxscalefeedrate" (fun scale job -> { job with Tool = { job.Tool with MaxScaleFeedRate = scale } })
+
     let boardWidth : Parser<ConfigEdit> =
         distanceEdit "board.width" (fun width job -> { job with Board = { job.Board with Width = width } })
 
@@ -228,6 +231,7 @@ module private Guts =
                 toolFeedRate
                 toolPlungeRate
                 toolRampFactor
+                toolScaleFeedRate
                 boardWidth
                 boardThickness
                 fingerCount
