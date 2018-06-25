@@ -133,6 +133,18 @@ module private Guts =
 
     // Post-processing options
     let postProcessStep : Parser<Instruction -> Instruction> =
+        let translate =
+            pstringCI "translate"
+            >>. sp
+            >>. pchar '('
+            >>. sp
+            >>.
+            pipe3
+                (distance .>> sp .>> pchar ',' .>> sp)
+                (distance .>> sp .>> pchar ',' .>> sp)
+                (distance .>> sp .>> pchar ')' .>> sp)
+                (fun x y z -> GCodeTransform.translate(x, y, z))
+            
         choice
             [   pstringCI "identity" .>> sp >>% id
                 pstringCI "clockwise90" .>> sp >>% GCodeTransform.clockwise90
@@ -140,6 +152,7 @@ module private Guts =
                 pstringCI "clockwise270" .>> sp >>% GCodeTransform.clockwise270
                 pstringCI "mirrorX" .>> sp >>% GCodeTransform.mirrorX
                 pstringCI "mirrorY" .>> sp >>% GCodeTransform.mirrorY
+                translate
             ]
 
     let postProcessPipeline =
