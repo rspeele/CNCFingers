@@ -93,6 +93,21 @@ let mirrorY =
             }
         Arc (speed, newMoves, newPars)
 
+let translate (dx, dy, dz) =
+    let translateMove (axis, scalar) =
+        axis, scalar +
+            match axis with
+            | X -> dx
+            | Y -> dy
+            | Z -> dz
+    function
+    | RapidMove moves -> RapidMove [ for move in moves -> translateMove move ]
+    | Move (speed, moves) -> Move (speed, [ for move in moves -> translateMove move ])
+    | Arc (speed, moves, pars) ->
+        let newMoves = [ for move in moves -> translateMove move ]
+        // since the center is relative, there is no need to translate it. direction and plane stay the same too.
+        Arc (speed, newMoves, pars)
+
 let () =
     let instructions =
         [   RapidMove [ X, 1.0<m>; Y, 1.0<m>; Z, 1.0<m> ]
@@ -113,3 +128,8 @@ let () =
     let flipfloppedY = List.map (mirrorY >> mirrorY) instructions
     if flipfloppedY <> instructions then
         failwith "Double y-flip is not identity -- bug"
+
+    let translatedOutAndBack = List.map (translate(1.0<m>, -2.0<m>, 3.0<m>) >> translate(-1.0<m>, 2.0<m>, -3.0<m>)) instructions
+    if translatedOutAndBack <> instructions then
+        failwith "Translate and back is not identity -- bug"
+
