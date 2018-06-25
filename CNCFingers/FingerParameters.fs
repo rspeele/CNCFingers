@@ -72,4 +72,6 @@ type JobParameters =
         Start : JobStart
         /// Multiple instances, each with their own transform to position them somewhere on the machine bed.
         Copies : (Instruction -> Instruction) list
+        /// If true, concatenate all copies to a single file.
+        SingleFile : bool
     }

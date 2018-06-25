@@ -30,6 +30,7 @@ let defaultJob =
             }
         Start = FingerThenPocket
         Copies = [ id ]
+        SingleFile = false
     }
 
 let validateJob (job : JobParameters) =

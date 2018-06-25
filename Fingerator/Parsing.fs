@@ -196,6 +196,10 @@ module private Guts =
         someEdit copies "job.copies"
             (fun xform job -> { job with Copies = xform })
 
+    let jobSingleFile : Parser<ConfigEdit> =
+        someEdit boolean "job.singlefile"
+            (fun single job -> { job with SingleFile = single })
+
     let toolDiameter : Parser<ConfigEdit> =
         distanceEdit "tool.diameter" (fun d job -> { job with Tool = { job.Tool with Diameter = d } })
 
@@ -258,6 +262,7 @@ module private Guts =
         choice
             [   jobStartWith
                 jobCopies
+                jobSingleFile
                 toolDiameter
                 toolStepOver
                 toolDepthOfCut

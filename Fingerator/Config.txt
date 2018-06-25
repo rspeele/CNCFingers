@@ -112,6 +112,11 @@ job.copies = [ identity ]
 -- job.copies = [ clockwise90 >> mirrorY ]
 
 ---- Finally, you can output multiple G-Code files by specifying multiple copies. For example, suppose you
----- want to cut fingers in both ends of a 12" board without having to flip the board around in the machine
----- and re-zero. Do a 180, then translate 12 inches up the Y axis.
--- job.copies = [ identity, clockwise180 >> translate(0 in, 12 in, 0 in) ]
+---- want to cut fingers in both ends of a 6x12" board without having to flip the board around in the machine
+---- and re-zero. Do a 180, then translate 12 inches up the Y axis and 6 over on the X.
+-- job.copies = [ identity, clockwise180 >> translate(6 in, 12 in, 0 in) ]
+
+-- If true/yes, concatenate G-Code for all copies into one file.
+-- This might save you a bit of time loading and running G-Code files, but won't be fun if you have a problem
+-- 3/4 of the way through your multi-copy job and need to re-run it.
+job.singlefile = no

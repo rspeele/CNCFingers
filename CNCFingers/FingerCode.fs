@@ -219,6 +219,7 @@ type private InstructionGenerator(job : JobParameters) =
                 yield! cutPockets 0.0<m>
             | FingerThenPocket ->
                 yield! cutPockets fingerWidth
+            yield RapidMove [ Z, zClearance ]
         }
 
 let instructions (job : JobParameters) =
