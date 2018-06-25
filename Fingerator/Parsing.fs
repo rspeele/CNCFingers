@@ -156,13 +156,28 @@ module private Guts =
             ]
 
     let postProcessPipeline =
-        sepEndBy postProcessStep (pchar ',' >>. sp)
+        sepEndBy1 postProcessStep (pstring ">>" >>. sp)
         |>> List.fold (>>) id
+
+    let copies =
+        pchar '['
+        .>> sp
+        >>. sepEndBy1 postProcessPipeline (pchar ',' >>. sp)
+        .>> sp
+        .>> pchar ']'
+        .>> sp
+
 
     let boolean =
         choice
             [   choice [ pstringCI "yes"; pstringCI "true" ] >>% true
                 choice [ pstringCI "no"; pstringCI "false" ] >>% false
+            ]
+
+    let startWith =
+        choice
+            [   pstringCI "fingerthenpocket" >>% FingerThenPocket
+                pstringCI "pocketthenfinger" >>% PocketThenFinger
             ]
 
     type ConfigEdit = JobParameters -> JobParameters
@@ -173,6 +188,13 @@ module private Guts =
     let scaleEdit = someEdit number
     let distanceEdit = someEdit distance
     let speedEdit = someEdit speed
+
+    let jobStartWith : Parser<ConfigEdit> =
+        someEdit startWith "job.startwith" (fun start job -> { job with Start = start })
+        
+    let jobCopies : Parser<ConfigEdit> =
+        someEdit copies "job.copies"
+            (fun xform job -> { job with Copies = xform })
 
     let toolDiameter : Parser<ConfigEdit> =
         distanceEdit "tool.diameter" (fun d job -> { job with Tool = { job.Tool with Diameter = d } })
@@ -232,13 +254,11 @@ module private Guts =
         someEdit machineUnitMode "machine.unit"
             (fun mode job -> { job with Machine = { job.Machine with Unit = mode } })
 
-    let transform : Parser<ConfigEdit> =
-        someEdit postProcessPipeline "gcode.transform"
-            (fun xform job -> { job with Transform = xform })
-
     let configEdit =
         choice
-            [   toolDiameter
+            [   jobStartWith
+                jobCopies
+                toolDiameter
                 toolStepOver
                 toolDepthOfCut
                 toolFeedRate
@@ -255,7 +275,6 @@ module private Guts =
                 fingerFuzz
                 fingerMulti
                 machineUnit
-                transform
             ]
 
     let jobParameters =

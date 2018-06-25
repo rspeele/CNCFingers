@@ -17,16 +17,17 @@ let main argv =
                 let text = File.ReadAllText(configFileName)
                 let job = Fingerator.Parsing.parseJob text configFileName
                 printfn "%O" job
-                for start in [ FingerThenPocket; PocketThenFinger ] do
-                    let instructions = FingerCode.instructions { job with Start = start }
+                let instructions = FingerCode.instructions job
+                for i, copy in job.Copies |> Seq.indexed do
                     let outputName =
                         Path.Combine
                             ( Path.GetDirectoryName(configFileName)
-                            , Path.GetFileNameWithoutExtension(configFileName) + "-" + string start + ".gcode"
+                            , Path.GetFileNameWithoutExtension(configFileName)
+                                + "-" + string job.Start + "-" + string i + ".gcode"
                             )
                     use output = new StreamWriter(File.Create(outputName))
                     for instruction in instructions do
-                        let instruction = job.Transform instruction
+                        let instruction = copy instruction
                         let gcode = instruction.ToGCode(job.Machine)
                         output.WriteLine(gcode)
         0

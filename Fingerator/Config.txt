@@ -22,6 +22,10 @@ board.thickness = 0.25 inches
 
 finger.count = 6
 
+-- Should the starting position (front left corner of the board) be a finger,
+-- or a cut-away pocket?
+job.startwith = FingerThenPocket
+
 -- If the workpiece is longer than your machine's cutting area, you might have to
 -- make your fingers in multiple passes, moving another section of the board into the
 -- cutting area each time. If so, set multipass to "yes", to disable the parts of the G-Code that
@@ -98,11 +102,16 @@ finger.fuzzcut = 1 thou
 --             |    OPERATOR (you)
 --            / \
 
-gcode.transform = identity
+job.copies = [ identity ]
 
 ---- To cut front-to-back along the right edge of the board you could rotate 270 degrees clockwise:
--- gcode.transform = clockwise270
+-- job.copies = [ clockwise270 ]
 
 ---- You an also combine transforms. For example, to cut back-to-front on the left edge, a 90* clockwise
----- rotation would work, but if you wanted to cut front-to-back, you could flip the Y axis too:
--- gcode.transform = clockwise90, mirrorY
+---- rotation would work, but if you wanted to cut front-to-back, you could flip the Y axis after rotating:
+-- job.copies = [ clockwise90 >> mirrorY ]
+
+---- Finally, you can output multiple G-Code files by specifying multiple copies. For example, suppose you
+---- want to cut fingers in both ends of a 12" board without having to flip the board around in the machine
+---- and re-zero. Do a 180, then translate 12 inches up the Y axis.
+-- job.copies = [ identity, clockwise180 >> translate(0 in, 12 in, 0 in) ]

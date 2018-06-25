@@ -70,5 +70,6 @@ type JobParameters =
         Finger : FingerParameters
         Machine : Machine
         Start : JobStart
-        Transform : Instruction -> Instruction
+        /// Multiple instances, each with their own transform to position them somewhere on the machine bed.
+        Copies : (Instruction -> Instruction) list
     }

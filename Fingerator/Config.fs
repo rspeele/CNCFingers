@@ -29,7 +29,7 @@ let defaultJob =
             {   Unit = Millimeters
             }
         Start = FingerThenPocket
-        Transform = id
+        Copies = [ id ]
     }
 
 let validateJob (job : JobParameters) =
