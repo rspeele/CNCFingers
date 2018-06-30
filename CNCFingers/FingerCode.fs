@@ -63,7 +63,7 @@ type private InstructionGenerator(job : JobParameters) =
             if not finger.Multipass && direction = CounterClockwise && (x =~= farRight || x > farRight) then () else
             // Ok, now the main part.
             let maxY =
-                if finger.Multipass && (x <= fingerWidth || x >= board.Width - fingerWidth) then
+                if (x <= fingerWidth || x >= board.Width - fingerWidth) then
                     pocketYMax
                 else
                     pocketYMax - rad
