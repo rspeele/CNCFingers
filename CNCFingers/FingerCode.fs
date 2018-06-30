@@ -134,7 +134,9 @@ type private InstructionGenerator(job : JobParameters) =
         seq {
             yield RapidMove [ Z, zClearance ]
             yield RapidMove [ X, x; Y, -di ]
-            for z, rate in zPasses (-doc) (-board.Thickness - finger.SpoilDepth) do
+            let bottomZ = -board.Thickness - finger.SpoilDepth
+            let rightX = x + deltaXWithinPocket
+            for z, rate in zPasses (-doc) bottomZ do
                 yield RapidMove [ Y, -di; X, x ]
                 yield RapidMove [ Z, z ]
                 yield! cutPocketPass x z rate
@@ -144,7 +146,20 @@ type private InstructionGenerator(job : JobParameters) =
             // The "back" curve is clockwise since we look at the XZ plane "down" the Y axis i.e. towards negative,
             // just like we would look at the XY plane "down" the Z axis.
             yield! cutCurve Clockwise x
-            yield! cutCurve CounterClockwise (x + deltaXWithinPocket)
+            yield! cutCurve CounterClockwise rightX
+
+            // Now trim the front left corner.
+            yield RapidMove [ Z, zClearance ]
+            yield RapidMove [ X, x; Y, -di ]
+            yield Move(feed, [ Z, bottomZ ])
+            yield Move(feed, [ X, x - di * (1.0 + tool.StepOver) ])
+
+            // Now trim the front right corner.
+            yield RapidMove [ Z, zClearance ]
+            yield RapidMove [ X, rightX; Y, -di ]
+            yield Move(feed, [ Z, bottomZ ])
+            yield Move(feed, [ X, rightX + di * (1.0 + tool.StepOver) ])
+
         }
 
     /// Assuming we're starting from Y=-rad and Z=0. Cuts a pocket at the given X position then repeats up to the board
@@ -216,6 +231,7 @@ type private InstructionGenerator(job : JobParameters) =
                 yield! cutPockets 0.0<m>
             | FingerThenPocket ->
                 yield! cutPockets fingerWidth
+
             yield RapidMove [ Z, zClearance ]
         }
 
