@@ -62,7 +62,12 @@ type private InstructionGenerator(job : JobParameters) =
             let farRight = board.Width - di
             if not finger.Multipass && direction = CounterClockwise && (x =~= farRight || x > farRight) then () else
             // Ok, now the main part.
-            let yPasses = [| -rad .. stepover .. pocketYMax - rad |]
+            let maxY =
+                if finger.Multipass && (x <= fingerWidth || x >= board.Width - fingerWidth) then
+                    pocketYMax
+                else
+                    pocketYMax - rad
+            let yPasses = [| -rad .. stepover .. maxY |]
             let mutable previousSlicePass = -1.0<m>
             for i in 0 .. yPasses.Length - 1 do
                 let y = yPasses.[i]
