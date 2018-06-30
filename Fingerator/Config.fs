@@ -21,8 +21,8 @@ let defaultJob =
                 Multipass = false
                 SideAllowance = 0.004 * 0.0254<m>
                 EndAllowance = 0.004 * 0.0254<m>
+                ShortcutThickness = 0.0<m>
                 SpoilDepth = 0.0<m>
-                KickoutThreshold = 0.0<m>
                 FuzzCut = 0.00025<m> // 1/4 mm fast cut to trim fuzz
             }
         Machine =

@@ -44,13 +44,11 @@ type FingerParameters =
         /// Best is to mount your board on to of a "spoil board", set this to 4 thou or so, and expect to get a few
         /// shallow cuts in the spoil board.
         SpoilDepth : float<m>
-        /// How thin an onion skin remaining at which we should try to kick out the "cut out" section of a big finger.
-        /// Usually the cut out section just goes flying at some point and doesn't bother anyone, but it can sometimes
-        /// lean over and interfere with cutting the curves. So it's good to try to get rid of it explicitly.
-        /// 0 or less disables the kickout step.
-        KickoutThreshold : float<m>
         /// There tends to be fuzz after cutting the dado. Clear it with a very thin cut -- this depth.
         FuzzCut : float<m>
+        /// If we have this much board thickness left or less, don't bother cutting out the middle parts, just
+        /// do the outline.
+        ShortcutThickness : float<m>
     }
 
 /// Run two jobs with the same other parameters but this flipped, in order to make two boards that mate together.

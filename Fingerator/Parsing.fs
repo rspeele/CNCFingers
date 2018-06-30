@@ -242,10 +242,6 @@ module private Guts =
         distanceEdit "finger.spoildepth"
             (fun depth job -> { job with Finger = { job.Finger with SpoilDepth = depth } })
 
-    let fingerKickout : Parser<ConfigEdit> =
-        distanceEdit "finger.kickout"
-            (fun kickout job -> { job with Finger = { job.Finger with KickoutThreshold = kickout } })
-
     let fingerFuzz : Parser<ConfigEdit> =
         distanceEdit "finger.fuzzcut"
             (fun fuzz job -> { job with Finger = { job.Finger with FuzzCut = fuzz } })
@@ -253,6 +249,10 @@ module private Guts =
     let fingerMulti : Parser<ConfigEdit> =
         someEdit boolean "finger.multipass"
             (fun multipass job -> { job with Finger = { job.Finger with Multipass = multipass } })
+
+    let fingerShortcut : Parser<ConfigEdit> =
+        distanceEdit "finger.shortcut"
+            (fun shortcut job -> { job with Finger = { job.Finger with ShortcutThickness = shortcut } })
 
     let machineUnit : Parser<ConfigEdit> =
         someEdit machineUnitMode "machine.unit"
@@ -276,9 +276,9 @@ module private Guts =
                 fingerSideAllowance
                 fingerEndAllowance
                 fingerSpoilDepth
-                fingerKickout
                 fingerFuzz
                 fingerMulti
+                fingerShortcut
                 machineUnit
             ]
 

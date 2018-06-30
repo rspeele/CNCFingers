@@ -91,32 +91,26 @@ type private InstructionGenerator(job : JobParameters) =
         }
 
     /// Assuming we're starting from Y=-di (tool just off the front face of the board).
-    let cutPocketPass (x : float<m>) rate =
+    let cutPocketPass (x : float<m>) (z : float<m>) rate =
         seq {
             yield Move(rate, [ Y, pocketYMax ])
             if not finger.Multipass && x =~= 0.0<m> then
                 // We are at the left edge of the board: eliminate the little |/ stickout with a quick back-and-forth
                 yield Move(rate, [ X, -di ])
                 yield RapidMove [ X, x ]
+            if board.Thickness + z > finger.ShortcutThickness then
+                // Clear the middle out. Wasteful in time but less wasteful than getting the tool caught on it and losing
+                // a step.
+                for i, xPass in seq { x + di .. di .. x + deltaXWithinPocket } |> Seq.indexed do
+                    yield Move(feed, [ X, xPass ])
+                    yield Move(feed, [ Y, if i % 2 = 0 then -rad else pocketYMax ])
+            yield RapidMove [ Y, pocketYMax ]
             yield Move(feed, [ X, x + deltaXWithinPocket ])
             if not finger.Multipass && x + fingerWidth =~= board.Width then
                 // We are the right edge of the board: eliminate the little \| stickout with a quick forth-and-back
                 yield Move(rate, [ X, board.Width ])
                 yield RapidMove [ X, x + deltaXWithinPocket ]
             yield Move(rate, [ Y, -di ])
-        }
-
-    let kickout (x : float<m>) =
-        seq {
-            // Go up so we don't take *too* heavy of a DOC in case the thing we're kicking out refuses to cooperate.
-            yield RapidMove [ Z, max (-doc * 1.5) (-board.Thickness) ]
-            // Scoot into the back middle of the cut making a left hook. In theory we won't touch any material while
-            // doing this so we move faster than normal, but not quite at RapidMove speed just in case the waste piece
-            // is floppy.
-            yield Move(feed * 2.0, [ Y, pocketYMax ])
-            yield Move(feed * 2.0, [ X, x + deltaXWithinPocket * 0.5 ])
-            // Come out of the cut from the middle, hopefully breaking the middle piece loose.
-            yield Move(feed, [ Y, -di ])
         }
 
     /// Get the z positions for progressing downwards by DOC at a time, including both start and finish.
@@ -133,19 +127,13 @@ type private InstructionGenerator(job : JobParameters) =
 
     /// Repeatedly runs cutPocketPass stepping down the Z-axis.
     let cutPocket (x : float<m>) =
-        let shouldKickout =
-            finger.KickoutThreshold > 0.0<m>
-            && fingerWidth + finger.SideAllowance > tool.Diameter
         seq {
             yield RapidMove [ Z, zClearance ]
             yield RapidMove [ X, x; Y, -di ]
             for z, rate in zPasses (-doc) (-board.Thickness - finger.SpoilDepth) do
                 yield RapidMove [ Y, -di; X, x ]
                 yield RapidMove [ Z, z ]
-                yield! cutPocketPass x rate
-                if shouldKickout && board.Thickness + z <= finger.KickoutThreshold then
-                    yield RapidMove [ Y, -di; X, x ]
-                    yield! kickout x
+                yield! cutPocketPass x z rate
 
             // Now cut the curves out of each side.
             yield RapidMove [ Z, 0.0<m> ]

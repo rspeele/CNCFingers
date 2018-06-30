@@ -67,19 +67,14 @@ finger.endallowance = 4 thou
 -- doing and have a spoil board, you'll get better results.
 finger.spoildepth = 0 thou
 
--- If you're cutting big fingers, the toolpath leaves a block in the interior of the cut. Eventually this gets
--- completely separated from the board, or at least (depending on your spoildepth setting) there will be only a very
--- thin "onion skin" connecting it to the board. It will flop around and break off easily. Usually this is a non-issue
--- but occasionally the tool can catch on the floppy waste piece and jam it up against the board, potentially moving
--- the board slightly if it's not very securely clamped. Therefore it can be good to explicitly program in a step
--- to "kick out" the waste piece when the onion skin is thin. CNCFingers will do that on the Z-axis pass when the onion
--- skin thickness becomes less than or equal to this setting, if this setting is greater than 0.
-finger.kickout = 5 thou
-
 -- If cutting soft wood, you want to make some trimming passes to clean up fuzz on the dado. This will otherwise
 -- interfere with the fit or at minimum look ugly. The trim pass depth should be very low, just enough to touch the fuzz
--- and separate it from the wood.
-finger.fuzzcut = 1 thou
+-- and separate it from the wood. Try 6 thou if you are getting fuzz.
+finger.fuzzcut = 0 thou
+
+-- If this much thickness or less remains, don't bother hogging out the middle of a finger. Just trace the outline.
+-- Note, this setting doesn't matter unless the fingers are wider than 2x the diameter of your tool.
+finger.shortcut = 30 thou
 
 -- Rotate/mirror the G-code for different job setups.
 -- Default is no rotation. Fingers will be cut left-to-right along the front of the board
