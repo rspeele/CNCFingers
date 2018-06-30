@@ -104,6 +104,10 @@ type private InstructionGenerator(job : JobParameters) =
                 for i, xPass in seq { x + di .. di .. x + deltaXWithinPocket } |> Seq.indexed do
                     yield Move(feed, [ X, xPass ])
                     yield Move(feed, [ Y, if i % 2 = 0 then -rad else pocketYMax ])
+                    if i % 2 <> 0 then
+                        // Quick left-right move to knock out the nubbin left in the middle from going out and back
+                        yield Move(feed, [ X, xPass - di ])
+                        yield RapidMove [ X, xPass ]
             yield RapidMove [ Y, pocketYMax ]
             yield Move(feed, [ X, x + deltaXWithinPocket ])
             if not finger.Multipass && x + fingerWidth =~= board.Width then
