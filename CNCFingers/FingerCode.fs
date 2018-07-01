@@ -67,7 +67,7 @@ type private InstructionGenerator(job : JobParameters) =
                     pocketYMax
                 else
                     pocketYMax - rad
-            let yPasses = [| -rad .. stepover .. maxY |]
+            let yPasses = Array.append [| -rad .. stepover .. maxY |] [| maxY |] |> Array.distinct // make sure this includes maxy
             let mutable previousSlicePass = -1.0<m>
             for i in 0 .. yPasses.Length - 1 do
                 let y = yPasses.[i]
