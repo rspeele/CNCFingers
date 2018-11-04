@@ -147,19 +147,6 @@ type private InstructionGenerator(job : JobParameters) =
             // just like we would look at the XY plane "down" the Z axis.
             yield! cutCurve Clockwise x
             yield! cutCurve CounterClockwise rightX
-
-            // Now trim the front left corner.
-            yield RapidMove [ Z, zClearance ]
-            yield RapidMove [ X, x; Y, -di ]
-            yield Move(feed, [ Z, bottomZ ])
-            yield Move(feed, [ X, x - di * (1.0 + tool.StepOver) ])
-
-            // Now trim the front right corner.
-            yield RapidMove [ Z, zClearance ]
-            yield RapidMove [ X, rightX; Y, -di ]
-            yield Move(feed, [ Z, bottomZ ])
-            yield Move(feed, [ X, rightX + di * (1.0 + tool.StepOver) ])
-
         }
 
     /// Assuming we're starting from Y=-rad and Z=0. Cuts a pocket at the given X position then repeats up to the board
