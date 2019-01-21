@@ -5,15 +5,15 @@ open FSharp.Data.UnitSystems.SI.UnitSymbols
 open CNCFingers
 
 let inch = 0.0254<m>
-let ips = inch / 60.0<s>
+let ipm = inch / 60.0<s>
 
 let config =
     {   Tool =
             {   Diameter = 0.125 * inch
                 StepOver = 0.2
                 DepthOfCut = 0.0625 * inch
-                FeedRate = 50.0 * ips
-                PlungeRate = 20.0 * ips
+                FeedRate = 50.0 * ipm
+                PlungeRate = 20.0 * ipm
                 RampFactor = 2.0
                 MaxScaleFeedRate = 2.0
             }
