@@ -37,8 +37,9 @@ type BoxGenerator(box : BoxConfig) =
             Machine = box.Machine
         } |> FingerCode.instructions |> Seq.toArray
 
+
     let bottomSlotWidth =
-        box.BottomThickness / 3.0 + box.SlotClearance * 2.0
+        box.BottomThickness / 2.0 + box.SlotClearance * 2.0
 
     let slotDepth =
         box.SideThickness / 2.0
@@ -240,4 +241,42 @@ type BoxGenerator(box : BoxConfig) =
                 )
 
             yield! cutPocket -slotDepth slotPosition slotDimensions
-        } 
+        }
+
+    member this.Lid() =
+        seq {
+            let (boxX, boxY, _) = box.ExteriorDimensions
+            let lidw = boxX - box.SideThickness * 2.0 - box.SlotClearance * 2.0
+            let lidh = boxY - box.SideThickness
+            // Cut slot outline
+            yield!
+                cutRectangularProfile
+                    (-box.LidThickness / 2.0)
+                    (rad + slotDepth, rad)
+                    (lidw, lidh)
+            // Cut total outline
+            yield!
+                cutRectangularProfile
+                    -box.LidThickness
+                    (rad, rad)
+                    (lidw + box.SideThickness, lidh)
+        }
+
+    member this.Bottom() =
+        seq {
+            let (boxX, boxY, _) = box.ExteriorDimensions
+            let internalw = boxX - box.SideThickness * 2.0 - box.SlotClearance * 2.0
+            let internalh = (boxY - box.SideThickness * 2.0 - box.SlotClearance * 2.0) / box.WoodExpansionFactor
+            // Cut slot outline
+            yield!
+                cutRectangularProfile
+                    (-box.BottomThickness / 2.0)
+                    (rad + slotDepth, rad + slotDepth)
+                    (internalw, internalh)
+            // Cut total outline
+            yield!
+                cutRectangularProfile
+                    -box.BottomThickness
+                    (rad, rad)
+                    (internalw + box.SideThickness, internalh + box.SideThickness)
+        }

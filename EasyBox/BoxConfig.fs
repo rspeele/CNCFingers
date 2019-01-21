@@ -20,6 +20,8 @@ type BoxConfig =
         SideThickness : float<m>
         BottomThickness : float<m>
         SlotClearance : float<m>
+        /// board width * expansion factor is max width we expect the board to grow to (for bottom, front <-> back)
+        WoodExpansionFactor : float
 
         //   +--------+
         //  /        /|
