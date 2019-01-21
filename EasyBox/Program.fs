@@ -12,7 +12,7 @@ let config =
             {   Diameter = 0.125 * inch
                 StepOver = 0.2
                 DepthOfCut = 0.0625 * inch
-                FeedRate = 50.0 * ipm
+                FeedRate = 40.0 * ipm
                 PlungeRate = 20.0 * ipm
                 RampFactor = 2.0
                 MaxScaleFeedRate = 2.0
@@ -23,7 +23,7 @@ let config =
         BottomThickness = 0.25 * inch
         SlotClearance = 0.003 * inch
         ExteriorDimensions = 4.0 * inch, 3.0 * inch, 2.0 * inch
-        WoodExpansionFactor = 1.0
+        WoodExpansionFactor = 1.02
     }
 
 let save (machine : Machine) (fileName : string)(instructions : Instruction seq) =

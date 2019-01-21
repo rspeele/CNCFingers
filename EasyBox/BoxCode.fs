@@ -96,10 +96,10 @@ type BoxGenerator(box : BoxConfig) =
             yield RapidMove [ X, x - rad; Y, y - rad ]
             for z, feed in zPasses -doc bottomZ do
                 yield Move(plunge, [ Z, z ])
-                yield Move(feed, [ X, x + w + rad ])
                 yield Move(feed, [ Y, y + h + rad ])
-                yield Move(feed, [ X, x - rad ])
+                yield Move(feed, [ X, x + w + rad ])
                 yield Move(feed, [ Y, y - rad ])
+                yield Move(feed, [ X, x - rad ])
         }
     
     let cutPocket
