@@ -162,3 +162,5 @@ type BoxGenerator(box : BoxConfig) =
             yield! cutPocket -bottomSlotDepth slotPosition slotDimensions
         }
 
+    //member this.LeftSide() =
+        

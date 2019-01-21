@@ -62,8 +62,9 @@ type private InstructionGenerator(job : JobParameters) =
             let farRight = board.Width - di
             if not finger.Multipass && direction = CounterClockwise && (x =~= farRight || x > farRight) then () else
             // Ok, now the main part.
+            let lastOnRight = not finger.Multipass && direction = CounterClockwise && (x > board.Width - fingerWidth * 2.0)
             let maxY =
-                if (x <= fingerWidth || x >= board.Width - fingerWidth) then
+                if lastOnRight || x <= fingerWidth || x >= board.Width - fingerWidth then
                     pocketYMax
                 else
                     pocketYMax - rad
@@ -82,7 +83,7 @@ type private InstructionGenerator(job : JobParameters) =
                         // from the previous cut, too.
                         yield Move(scaleFeed finger.EndAllowance, [ X, x - fingerWidth ])
                         previousSlicePass <- y
-                    elif not finger.Multipass && direction = CounterClockwise && (x > board.Width - fingerWidth * 2.0) then
+                    elif lastOnRight then
                         // We are cutting the last finger on the right. Trim off the top excess since we won't do
                         // a back-curve and hit the above path to do it.
                         yield Move(scaleFeed finger.EndAllowance, [ X, x + fingerWidth + rad ])
