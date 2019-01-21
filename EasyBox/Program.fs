@@ -34,6 +34,6 @@ let save (machine : Machine) (fileName : string)(instructions : Instruction seq)
 [<EntryPoint>]
 let main argv =
     let generator = BoxCode.BoxGenerator(config)
-    generator.RightSide() |> save config.Machine "front.gcode"
+    generator.BackSide() |> save config.Machine "front.gcode"
     printfn "Done."
     0 // return an integer exit code

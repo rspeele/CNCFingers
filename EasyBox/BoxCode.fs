@@ -198,7 +198,7 @@ type BoxGenerator(box : BoxConfig) =
             // Top slot:
             let sliderPosition =
                 ( rad + boxZ - box.LidThickness - box.SlotClearance
-                , if isLeftSide then 0.0<m> else box.SideThickness
+                , if isLeftSide then box.SideThickness else 0.0<m>
                 )
 
             let sliderDimensions =
@@ -211,3 +211,33 @@ type BoxGenerator(box : BoxConfig) =
 
     member this.LeftSide() = this.Side(isLeftSide = true)
     member this.RightSide() = this.Side(isLeftSide = false)
+    
+    member this.BackSide() =
+        let (boxX, _, boxZ) = box.ExteriorDimensions
+        let xFormFarFingers =
+            // box will start at rad, rad, so move an extra rad inwards to match
+            // finger generation zero expectations (bit tangent to edges)
+            GCodeTransform.translate (di, di, 0.0<m>)
+        let xFormNearFingers =
+            GCodeTransform.mirrorY
+            // x will be same, Y needs to be the end of the board minus the tool radius
+            >> GCodeTransform.translate (di, boxX, 0.0<m>)
+
+        seq {
+            yield! cutRectangularProfile -box.SideThickness (rad, rad) (boxZ, boxX)
+            yield! fingerInstructions |> Seq.map xFormNearFingers
+            yield! fingerInstructions |> Seq.map xFormFarFingers
+
+            // Bottom slot:
+            let slotPosition =
+                ( rad + boxZ - box.BottomThickness - box.SlotClearance
+                , rad + box.SideThickness / 2.0
+                )
+
+            let slotDimensions =
+                ( bottomSlotWidth
+                , boxX - box.SideThickness
+                )
+
+            yield! cutPocket -slotDepth slotPosition slotDimensions
+        } 
