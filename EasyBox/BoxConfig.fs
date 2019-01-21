@@ -19,6 +19,7 @@ type BoxConfig =
         LidThickness : float<m> // Should be close to side thickness but boards may vary.
         SideThickness : float<m>
         BottomThickness : float<m>
+        SlotClearance : float<m>
 
         //   +--------+
         //  /        /|

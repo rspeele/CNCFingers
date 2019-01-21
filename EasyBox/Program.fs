@@ -21,6 +21,7 @@ let config =
         LidThickness = 0.25 * inch
         SideThickness = 0.25 * inch
         BottomThickness = 0.75 * inch
+        SlotClearance = 0.003 * inch
         ExteriorDimensions = 8.0 * inch, 7.0 * inch, 2.0 * inch
     }
 

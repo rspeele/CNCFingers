@@ -85,7 +85,7 @@ type private InstructionGenerator(job : JobParameters) =
                     elif not finger.Multipass && direction = CounterClockwise && (x > board.Width - fingerWidth * 2.0) then
                         // We are cutting the last finger on the right. Trim off the top excess since we won't do
                         // a back-curve and hit the above path to do it.
-                        yield Move(scaleFeed finger.EndAllowance, [ X, x + fingerWidth ])
+                        yield Move(scaleFeed finger.EndAllowance, [ X, x + fingerWidth + rad ])
                         previousSlicePass <- y
             yield RapidMove [ X, x; Y, -rad ]
         }
@@ -151,12 +151,12 @@ type private InstructionGenerator(job : JobParameters) =
 
     /// Assuming we're starting from Y=-rad and Z=0. Cuts a pocket at the given X position then repeats up to the board
     /// width.
-    let cutPockets (startX : float<m>) =
+    let cutPockets (startX : float<m>) (endX : float<m>) =
         // Displacement between the left side edge of each pocket. Allowances are not involved in this, as that would
         // change the fingers/distance, and end up with unaligned fingers at the far end of the board.
         let l2lDisplacement = fingerWidth * 2.0
         seq {
-            for x in startX .. l2lDisplacement .. (board.Width - di) do
+            for x in startX .. l2lDisplacement .. endX do
                 yield! cutPocket x
         }
 
@@ -215,9 +215,9 @@ type private InstructionGenerator(job : JobParameters) =
 
             match job.Start with
             | PocketThenFinger ->
-                yield! cutPockets 0.0<m>
+                yield! cutPockets 0.0<m> (board.Width - di)
             | FingerThenPocket ->
-                yield! cutPockets fingerWidth
+                yield! cutPockets fingerWidth (board.Width - di)
 
             yield RapidMove [ Z, zClearance ]
         }
