@@ -168,7 +168,7 @@ type private InstructionGenerator(job : JobParameters) =
         seq {
             yield RapidMove [ Z, zClearance ]
 
-            let distanceFromEdges = fingerWidth / 3.0
+            let distanceFromEdges = fingerWidth / 2.0
 
             let leftX = distanceFromEdges
             let rightX =

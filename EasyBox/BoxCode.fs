@@ -15,7 +15,7 @@ type BoxGenerator(box : BoxConfig) =
         let (_, _, z) = box.ExteriorDimensions
         // Need to make we have pockets of at least the lid thickness, so the front clearance works out.
         // We also need an even # of fingers, so round down to even by clearing the low bit.
-        let fingerCount = 6
+        let fingerCount = (int (z / box.LidThickness)) &&& (~~~1)
         if fingerCount < 2 then
             failwith "Box dimensions don't allow for reasonable fingers"
         {   Count = fingerCount
@@ -26,12 +26,25 @@ type BoxGenerator(box : BoxConfig) =
             SpoilDepth = 0.0<m>
             FuzzCut = 0.0<m>
         }
+    let fingerInstructions =
+        let _, _, boxZ = box.ExteriorDimensions
+        {   Board = { Width = boxZ; Thickness = box.SideThickness }
+            Tool = box.Tool
+            Finger = fingerParameters
+            Start = PocketThenFinger
+            Copies = [ id ]
+            SingleFile = true
+            Machine = box.Machine
+        } |> FingerCode.instructions |> Seq.toArray
 
     let bottomSlotWidth =
         box.BottomThickness / 3.0 + box.SlotClearance * 2.0
 
-    let bottomSlotDepth =
+    let slotDepth =
         box.SideThickness / 2.0
+
+    let lidSlotWidth =
+        box.LidThickness / 2.0 + box.SlotClearance * 2.0
 
     let scaleFeed (forDoc : float<m>) =
         if forDoc <= 0.0<m> then feed else
@@ -134,15 +147,6 @@ type BoxGenerator(box : BoxConfig) =
             GCodeTransform.mirrorY
             // x will be same, Y needs to be the end of the board minus the tool radius
             >> GCodeTransform.translate (di, boxX, 0.0<m>)
-        let fingerInstructions =
-            {   Board = { Width = boxZ; Thickness = box.SideThickness }
-                Tool = box.Tool
-                Finger = fingerParameters
-                Start = PocketThenFinger
-                Copies = [ id ]
-                SingleFile = true
-                Machine = box.Machine
-            } |> FingerCode.instructions |> Seq.toArray
         let cutForLid = box.LidThickness + box.SlotClearance
         seq {
             yield! cutRectangularProfile -box.SideThickness (rad + cutForLid, rad) (boxZ - cutForLid, boxX)
@@ -159,8 +163,51 @@ type BoxGenerator(box : BoxConfig) =
                 , boxX - box.SideThickness
                 )
 
-            yield! cutPocket -bottomSlotDepth slotPosition slotDimensions
+            yield! cutPocket -slotDepth slotPosition slotDimensions
         }
 
-    //member this.LeftSide() =
-        
+    member private this.Side(isLeftSide : bool) =
+        let (_, boxY, boxZ) = box.ExteriorDimensions
+        let xFormFarFingers =
+            // box will start at rad, rad, so move an extra rad inwards to match
+            // finger generation zero expectations (bit tangent to edges)
+            GCodeTransform.translate (di, di, 0.0<m>)
+        let xFormNearFingers =
+            GCodeTransform.mirrorY
+            // x will be same, Y needs to be the end of the board minus the tool radius
+            >> GCodeTransform.translate (di, boxY, 0.0<m>)
+
+        seq {
+            yield! cutRectangularProfile -box.SideThickness (rad, rad) (boxZ, boxY)
+            yield! fingerInstructions |> Seq.map xFormNearFingers
+            yield! fingerInstructions |> Seq.map xFormFarFingers
+
+            // Bottom slot:
+            let slotPosition =
+                ( rad + box.BottomThickness + box.SlotClearance - bottomSlotWidth
+                , rad + box.SideThickness / 2.0
+                )
+
+            let slotDimensions =
+                ( bottomSlotWidth
+                , boxY - box.SideThickness
+                )
+
+            yield! cutPocket -slotDepth slotPosition slotDimensions
+
+            // Top slot:
+            let sliderPosition =
+                ( rad + boxZ - box.LidThickness - box.SlotClearance
+                , if isLeftSide then 0.0<m> else box.SideThickness
+                )
+
+            let sliderDimensions =
+                ( lidSlotWidth
+                , boxY - box.SideThickness / 2.0
+                )
+
+            yield! cutPocket -slotDepth sliderPosition sliderDimensions
+        }    
+
+    member this.LeftSide() = this.Side(isLeftSide = true)
+    member this.RightSide() = this.Side(isLeftSide = false)
