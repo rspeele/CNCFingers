@@ -18,9 +18,9 @@ let config =
                 MaxScaleFeedRate = 2.0
             }
         Machine = { Unit = Millimeters }
-        LidThickness = 0.25 * inch
-        SideThickness = 0.25 * inch
-        BottomThickness = 0.25 * inch
+        LidThickness = 0.245 * inch
+        SideThickness = 0.245 * inch
+        BottomThickness = 0.245 * inch
         SlotClearance = 0.003 * inch
         ExteriorDimensions = 4.0 * inch, 3.0 * inch, 2.0 * inch
         WoodExpansionFactor = 1.02
