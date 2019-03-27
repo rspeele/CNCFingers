@@ -157,9 +157,9 @@ type BoxGenerator(box : BoxConfig) =
             | SlidingLid lid -> lid.LidThickness + lid.SlotClearance
             | SidesOnly -> 0.0<m>
         seq {
-            yield! cutRectangularProfile -box.SideThickness (rad + cutForLid, rad) (boxZ - cutForLid, boxX)
             yield! fingerInstructions |> Seq.map xFormNearFingers
             yield! fingerInstructions |> Seq.map xFormFarFingers
+            yield! cutRectangularProfile -box.SideThickness (rad + cutForLid, rad) (boxZ - cutForLid, boxX)
 
             match box.BoxType with
             | SidesOnly -> ()
@@ -189,9 +189,9 @@ type BoxGenerator(box : BoxConfig) =
             >> GCodeTransform.translate (di, boxY, 0.0<m>)
 
         seq {
-            yield! cutRectangularProfile -box.SideThickness (rad, rad) (boxZ, boxY)
             yield! fingerInstructions |> Seq.map xFormNearFingers
             yield! fingerInstructions |> Seq.map xFormFarFingers
+            yield! cutRectangularProfile -box.SideThickness (rad, rad) (boxZ, boxY)
 
             match box.BoxType with
             | SidesOnly -> ()
@@ -238,9 +238,9 @@ type BoxGenerator(box : BoxConfig) =
             >> GCodeTransform.translate (di, boxX, 0.0<m>)
 
         seq {
-            yield! cutRectangularProfile -box.SideThickness (rad, rad) (boxZ, boxX)
             yield! fingerInstructions |> Seq.map xFormNearFingers
             yield! fingerInstructions |> Seq.map xFormFarFingers
+            yield! cutRectangularProfile -box.SideThickness (rad, rad) (boxZ, boxX)
 
             match box.BoxType with
             | SidesOnly -> ()
