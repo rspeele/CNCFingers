@@ -11,11 +11,15 @@ type BoxGenerator(box : BoxConfig) =
     let feed = tool.FeedRate
     let plunge = tool.PlungeRate
     let doc = tool.DepthOfCut
+    let lidThickness =
+        match box.BoxType with
+        | SlidingLid c -> c.LidThickness
+        | SidesOnly -> box.SideThickness
     let fingerParameters =
         let (_, _, z) = box.ExteriorDimensions
         // Need to make we have pockets of at least the lid thickness, so the front clearance works out.
         // We also need an even # of fingers, so round down to even by clearing the low bit.
-        let fingerCount = (int (z / box.LidThickness)) &&& (~~~1)
+        let fingerCount = (int (z / lidThickness)) &&& (~~~1)
         if fingerCount < 2 then
             failwith "Box dimensions don't allow for reasonable fingers"
         {   Count = fingerCount
@@ -38,14 +42,14 @@ type BoxGenerator(box : BoxConfig) =
         } |> FingerCode.instructions |> Seq.toArray
 
 
-    let bottomSlotWidth =
-        box.BottomThickness / 2.0 + box.SlotClearance * 2.0
+    let bottomSlotWidth (lid : SlidingLidConfig) =
+        lid.BottomThickness / 2.0 + lid.SlotClearance * 2.0
 
     let slotDepth =
         box.SideThickness / 2.0
 
-    let lidSlotWidth =
-        box.LidThickness / 2.0 + box.SlotClearance * 2.0
+    let lidSlotWidth (lid : SlidingLidConfig) =
+        lid.LidThickness / 2.0 + lid.SlotClearance * 2.0
 
     let scaleFeed (forDoc : float<m>) =
         if forDoc <= 0.0<m> then feed else
@@ -148,23 +152,29 @@ type BoxGenerator(box : BoxConfig) =
             GCodeTransform.mirrorY
             // x will be same, Y needs to be the end of the board minus the tool radius
             >> GCodeTransform.translate (di, boxX, 0.0<m>)
-        let cutForLid = box.LidThickness + box.SlotClearance
+        let cutForLid =
+            match box.BoxType with
+            | SlidingLid lid -> lid.LidThickness + lid.SlotClearance
+            | SidesOnly -> 0.0<m>
         seq {
             yield! cutRectangularProfile -box.SideThickness (rad + cutForLid, rad) (boxZ - cutForLid, boxX)
             yield! fingerInstructions |> Seq.map xFormNearFingers
             yield! fingerInstructions |> Seq.map xFormFarFingers
 
-            let slotPosition =
-                ( rad + boxZ - box.BottomThickness - box.SlotClearance
-                , rad + box.SideThickness / 2.0
-                )
+            match box.BoxType with
+            | SidesOnly -> ()
+            | SlidingLid lid ->
+                let slotPosition =
+                    ( rad + boxZ - lid.BottomThickness - lid.SlotClearance
+                    , rad + box.SideThickness / 2.0
+                    )
 
-            let slotDimensions =
-                ( bottomSlotWidth
-                , boxX - box.SideThickness
-                )
+                let slotDimensions =
+                    ( bottomSlotWidth lid
+                    , boxX - box.SideThickness
+                    )
 
-            yield! cutPocket -slotDepth slotPosition slotDimensions
+                yield! cutPocket -slotDepth slotPosition slotDimensions
         }
 
     member private this.Side(isLeftSide : bool) =
@@ -183,31 +193,34 @@ type BoxGenerator(box : BoxConfig) =
             yield! fingerInstructions |> Seq.map xFormNearFingers
             yield! fingerInstructions |> Seq.map xFormFarFingers
 
-            // Bottom slot:
-            let slotPosition =
-                ( rad + box.BottomThickness + box.SlotClearance - bottomSlotWidth
-                , rad + box.SideThickness / 2.0
-                )
+            match box.BoxType with
+            | SidesOnly -> ()
+            | SlidingLid lid ->
+                // Bottom slot:
+                let slotPosition =
+                    ( rad + lid.BottomThickness + lid.SlotClearance - bottomSlotWidth lid
+                    , rad + box.SideThickness / 2.0
+                    )
 
-            let slotDimensions =
-                ( bottomSlotWidth
-                , boxY - box.SideThickness
-                )
+                let slotDimensions =
+                    ( bottomSlotWidth lid
+                    , boxY - box.SideThickness
+                    )
 
-            yield! cutPocket -slotDepth slotPosition slotDimensions
+                yield! cutPocket -slotDepth slotPosition slotDimensions
 
-            // Top slot:
-            let sliderPosition =
-                ( rad + boxZ - box.LidThickness - box.SlotClearance
-                , if isLeftSide then box.SideThickness else 0.0<m>
-                )
+                // Top slot:
+                let sliderPosition =
+                    ( rad + boxZ - lid.LidThickness - lid.SlotClearance
+                    , if isLeftSide then box.SideThickness else 0.0<m>
+                    )
 
-            let sliderDimensions =
-                ( lidSlotWidth
-                , boxY - box.SideThickness / 2.0
-                )
+                let sliderDimensions =
+                    ( lidSlotWidth lid
+                    , boxY - box.SideThickness / 2.0
+                    )
 
-            yield! cutPocket -slotDepth sliderPosition sliderDimensions
+                yield! cutPocket -slotDepth sliderPosition sliderDimensions
         }    
 
     member this.LeftSide() = this.Side(isLeftSide = true)
@@ -229,54 +242,63 @@ type BoxGenerator(box : BoxConfig) =
             yield! fingerInstructions |> Seq.map xFormNearFingers
             yield! fingerInstructions |> Seq.map xFormFarFingers
 
-            // Bottom slot:
-            let slotPosition =
-                ( rad + boxZ - box.BottomThickness - box.SlotClearance
-                , rad + box.SideThickness / 2.0
-                )
+            match box.BoxType with
+            | SidesOnly -> ()
+            | SlidingLid lid ->
+                // Bottom slot:
+                let slotPosition =
+                    ( rad + boxZ - lid.BottomThickness - lid.SlotClearance
+                    , rad + box.SideThickness / 2.0
+                    )
 
-            let slotDimensions =
-                ( bottomSlotWidth
-                , boxX - box.SideThickness
-                )
+                let slotDimensions =
+                    ( bottomSlotWidth lid
+                    , boxX - box.SideThickness
+                    )
 
-            yield! cutPocket -slotDepth slotPosition slotDimensions
+                yield! cutPocket -slotDepth slotPosition slotDimensions
         }
 
     member this.Lid() =
+        match box.BoxType with
+        | SidesOnly -> Seq.empty
+        | SlidingLid lid ->
         seq {
             let (boxX, boxY, _) = box.ExteriorDimensions
-            let lidw = boxX - box.SideThickness * 2.0 - box.SlotClearance * 2.0
+            let lidw = boxX - box.SideThickness * 2.0 - lid.SlotClearance * 2.0
             let lidh = boxY - box.SideThickness
             // Cut slot outline
             yield!
                 cutRectangularProfile
-                    (-box.LidThickness / 2.0)
+                    (-lid.LidThickness / 2.0)
                     (rad + slotDepth, rad)
                     (lidw, lidh)
             // Cut total outline
             yield!
                 cutRectangularProfile
-                    -box.LidThickness
+                    -lid.LidThickness
                     (rad, rad)
                     (lidw + box.SideThickness, lidh)
         }
 
     member this.Bottom() =
-        seq {
-            let (boxX, boxY, _) = box.ExteriorDimensions
-            let internalw = boxX - box.SideThickness * 2.0 - box.SlotClearance * 2.0
-            let internalh = (boxY - box.SideThickness * 2.0 - box.SlotClearance * 2.0) / box.WoodExpansionFactor
-            // Cut slot outline
-            yield!
-                cutRectangularProfile
-                    (-box.BottomThickness / 2.0)
-                    (rad + slotDepth, rad + slotDepth)
-                    (internalw, internalh)
-            // Cut total outline
-            yield!
-                cutRectangularProfile
-                    -box.BottomThickness
-                    (rad, rad)
-                    (internalw + box.SideThickness, internalh + box.SideThickness)
-        }
+        match box.BoxType with
+        | SidesOnly -> Seq.empty
+        | SlidingLid lid ->
+            seq {
+                let (boxX, boxY, _) = box.ExteriorDimensions
+                let internalw = boxX - box.SideThickness * 2.0 - lid.SlotClearance * 2.0
+                let internalh = (boxY - box.SideThickness * 2.0 - lid.SlotClearance * 2.0) / box.WoodExpansionFactor
+                // Cut slot outline
+                yield!
+                    cutRectangularProfile
+                        (-lid.BottomThickness / 2.0)
+                        (rad + slotDepth, rad + slotDepth)
+                        (internalw, internalh)
+                // Cut total outline
+                yield!
+                    cutRectangularProfile
+                        -lid.BottomThickness
+                        (rad, rad)
+                        (internalw + box.SideThickness, internalh + box.SideThickness)
+            }
