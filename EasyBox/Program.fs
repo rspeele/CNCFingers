@@ -11,22 +11,22 @@ let config =
     {   Tool =
             {   Diameter = 0.125 * inch
                 StepOver = 0.2
-                DepthOfCut = 0.0625 * inch
-                FeedRate = 40.0 * ipm
+                DepthOfCut = 0.05 * inch
+                FeedRate = 50.0 * ipm
                 PlungeRate = 20.0 * ipm
                 RampFactor = 2.0
-                MaxScaleFeedRate = 2.0
+                MaxScaleFeedRate = 1.4
             }
         Machine = { Unit = Millimeters }
         BoxType =
-            {   LidThickness = 0.245 * inch
-                BottomThickness = 0.245 * inch
-                SlotClearance = 0.003 * inch
+            {   LidThickness = 0.380 * inch
+                BottomThickness = 0.380 * inch
+                SlotClearance = 0.005 * inch
             } |> SlidingLid
 
-        SideThickness = 0.245 * inch
-        ExteriorDimensions = 4.0 * inch, 3.0 * inch, 2.0 * inch
-        WoodExpansionFactor = 1.02
+        SideThickness = 0.380 * inch
+        ExteriorDimensions = 2.25 * inch, 2.25 * inch, 2.25 * inch
+        WoodExpansionFactor = 1.025
     }
 
 let save (machine : Machine) (fileName : string)(instructions : Instruction seq) =
