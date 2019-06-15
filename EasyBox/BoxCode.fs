@@ -273,6 +273,16 @@ type BoxGenerator(box : BoxConfig) =
                     (-lid.LidThickness / 2.0)
                     (rad + slotDepth, rad)
                     (lidw, lidh)
+            // Cut additional slot outlines if necessary
+            let mutable slotCut = di
+            while slotCut < slotDepth do
+                slotCut <- slotCut - rad / 2.0
+                yield!
+                    cutRectangularProfile
+                        (-lid.BottomThickness / 2.0)
+                        (rad + slotDepth - slotCut, rad)
+                        (lidw + slotCut * 2.0, lidh)
+                slotCut <- slotCut + di
             // Cut total outline
             yield!
                 cutRectangularProfile
@@ -289,12 +299,22 @@ type BoxGenerator(box : BoxConfig) =
                 let (boxX, boxY, _) = box.ExteriorDimensions
                 let internalw = boxX - box.SideThickness * 2.0 - lid.SlotClearance * 2.0
                 let internalh = (boxY - box.SideThickness * 2.0 - lid.SlotClearance * 2.0) / box.WoodExpansionFactor
-                // Cut slot outline
+                // Cut innermost slot outline
                 yield!
                     cutRectangularProfile
                         (-lid.BottomThickness / 2.0)
                         (rad + slotDepth, rad + slotDepth)
                         (internalw, internalh)
+                // Cut additional slot outlines if necessary
+                let mutable slotCut = di
+                while slotCut < slotDepth do
+                    slotCut <- slotCut - rad / 2.0
+                    yield!
+                        cutRectangularProfile
+                            (-lid.BottomThickness / 2.0)
+                            (rad + slotDepth - slotCut, rad + slotDepth - slotCut)
+                            (internalw + slotCut * 2.0, internalh + slotCut * 2.0)
+                    slotCut <- slotCut + di
                 // Cut total outline
                 yield!
                     cutRectangularProfile
