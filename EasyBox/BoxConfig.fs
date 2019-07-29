@@ -13,15 +13,20 @@ open CNCFingers
 
 // The bottom can be really thick, thick enough to machine pockets out of (generated in a separate program).
 
-type SlidingLidConfig =
+type SlotLidConfig =
     {   LidThickness : float<m> // Should be close to side thickness but boards may vary.
-        BottomThickness : float<m>
         SlotClearance : float<m>
     }
 
+type LidType =
+    | SlidingLid of SlotLidConfig
+    | CaptiveLid of SlotLidConfig
+    
+
 type BoxType =
-    | SidesOnly
-    | SlidingLid of SlidingLidConfig
+    {   BottomCaptive : SlotLidConfig option
+        Top : LidType option
+    }
 
 type BoxConfig =
     {   Tool : ToolParameters
@@ -43,5 +48,6 @@ type BoxConfig =
         //+--------+
         //    X
         ExteriorDimensions : float<m> * float<m> * float<m>
+        ForceFingerCount : int option
     }
 
