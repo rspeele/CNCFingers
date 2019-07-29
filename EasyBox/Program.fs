@@ -15,18 +15,18 @@ let config =
                 FeedRate = 50.0 * ipm
                 PlungeRate = 20.0 * ipm
                 RampFactor = 2.0
-                MaxScaleFeedRate = 1.4
+                MaxScaleFeedRate = 1.25
             }
         Machine = { Unit = Millimeters }
         BoxType =
-            {   LidThickness = 0.380 * inch
-                BottomThickness = 0.380 * inch
-                SlotClearance = 0.005 * inch
+            {   LidThickness = 0.375 * inch
+                BottomThickness = 0.375 * inch
+                SlotClearance = 0.010 * inch
             } |> SlidingLid
 
-        SideThickness = 0.380 * inch
-        ExteriorDimensions = 2.25 * inch, 2.25 * inch, 2.25 * inch
-        WoodExpansionFactor = 1.025
+        SideThickness = 0.508 * inch
+        ExteriorDimensions = 14.5 * inch, 13.0 * inch, 5.875 * inch
+        WoodExpansionFactor = 1.015
     }
 
 let save (machine : Machine) (fileName : string)(instructions : Instruction seq) =

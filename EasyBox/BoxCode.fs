@@ -27,7 +27,7 @@ type BoxGenerator(box : BoxConfig) =
             SideAllowance = 0.004 * 0.0254<m>
             EndAllowance = 0.006 * 0.0254<m>
             ShortcutThickness = 0.0<m>
-            SpoilDepth = 0.0<m>
+            SpoilDepth = 0.00025<m>
             FuzzCut = 0.0<m>
         }
     let fingerInstructions =
