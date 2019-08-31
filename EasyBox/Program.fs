@@ -20,20 +20,20 @@ let config =
         Machine = { Unit = Millimeters }
         BoxType =
             {   Top =
-                    {   LidThickness = 0.375 * inch
+                    {   LidThickness = 0.365 * inch
                         SlotClearance = 0.010 * inch
                     } |> CaptiveLid |> Some
                 BottomCaptive =
-                    {   LidThickness = 0.375 * inch
+                    {   LidThickness = 0.365 * inch
                         SlotClearance = 0.010 * inch
                     } |> Some
             }
 
 
-        SideThickness = 0.508 * inch
-        ExteriorDimensions = 14.5 * inch, 13.0 * inch, 5.875 * inch
+        SideThickness = 0.365 * inch
+        ExteriorDimensions = 2.75 * inch, 2.75 * inch, 2.75 * inch
         WoodExpansionFactor = 1.015
-        ForceFingerCount = Some 6
+        ForceFingerCount = None
     }
 
 let save (machine : Machine) (fileName : string)(instructions : Instruction seq) =
