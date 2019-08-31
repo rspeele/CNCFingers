@@ -337,7 +337,7 @@ type BoxGenerator(box : BoxConfig) =
                     (internalw + box.SideThickness, internalh + box.SideThickness)
         }
 
-    member this.Lid() =
+    member this.Top() =
         match box.BoxType.Top with
         | None -> Seq.empty
         | Some (SlidingLid lid) ->

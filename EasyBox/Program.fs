@@ -45,10 +45,10 @@ let save (machine : Machine) (fileName : string)(instructions : Instruction seq)
 [<EntryPoint>]
 let main argv =
     let generator = BoxCode.BoxGenerator(config)
-    generator.BackSide() |> save config.Machine "back.gcode"
-    generator.LeftSide() |> save config.Machine "left.gcode"
-    generator.RightSide() |> save config.Machine "right.gcode"
-    generator.FrontSide() |> save config.Machine "front.gcode"
-    generator.Lid() |> save config.Machine "lid.gcode"
+    generator.BackSide() |> Seq.map GCodeTransform.clockwise90 |> save config.Machine "back.gcode"
+    generator.LeftSide() |> Seq.map GCodeTransform.clockwise90|> save config.Machine "left.gcode"
+    generator.RightSide() |> Seq.map GCodeTransform.clockwise90|> save config.Machine "right.gcode"
+    generator.FrontSide() |> Seq.map GCodeTransform.clockwise90|> save config.Machine "front.gcode"
+    generator.Top() |> save config.Machine "top.gcode"
     generator.Bottom() |> save config.Machine "bottom.gcode"
     0 // return an integer exit code
