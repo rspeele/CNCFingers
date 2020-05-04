@@ -106,32 +106,6 @@ type BoxGenerator(box : BoxConfig) =
                 yield Move(feed, [ Y, y - rad ])
                 yield Move(feed, [ X, x - rad ])
         }
-
-    let cutPocketSlot
-        (bottomZ : float<m>)
-        (x : float<m>, y : float<m>)
-        (w : float<m>, h : float<m>) =
-        seq {
-            let step = di * 0.4
-            let xLeft = x + rad
-            let xRight = x + w - rad
-            let yBot = y + rad
-            let yTop = y + h - rad
-            yield RapidMove [ Z, safeZ ]
-            yield RapidMove [ X, xLeft; Y, yBot ]
-            for z, feed in zPasses -doc bottomZ do
-                yield Move(plunge, [ Z, z ])
-                if w > h then
-                    for even, yPass in rangeWithLast yBot step yTop do
-                        yield Move(feed, [ Y, yPass ])
-                        yield Move(feed, [ X, if even then xRight else xLeft ])
-                else
-                    for even, xPass in rangeWithLast xLeft step xRight do
-                        yield Move(feed, [ X, xPass])
-                        yield Move(feed, [ Y, if even then yTop else yBot ])
-                yield RapidMove [ X, xLeft; Y, yBot ]
-            yield RapidMove [ Z, safeZ ]
-        }
     
     // Cut a pocket whose bottom left corner is at x,y
     // and with width and height as given. This cuts INSIDE the lines, not ON or OUTSIDE.
@@ -144,34 +118,39 @@ type BoxGenerator(box : BoxConfig) =
             let centerX = x + w*0.5
             let centerY = y + h*0.5
             let stepOver = rad
-            let maxStepOut = (max w h) * 0.5
             
             let xLeft = x + rad
             let xRight = x + w - rad
             let yBot = y + rad
             let yTop = y + h - rad
 
+            let boxes =
+                seq {
+                    for offset in 0.0<m> .. stepOver .. 1000_000.0<m> do 
+                        yield xLeft + offset, xRight - offset, yBot + offset, yTop - offset
+                }
+                |> Seq.takeWhile (fun (x0, x1, y0, y1) -> x1 >= x0 && y1 >= y0)
+                |> Seq.toArray
+                |> Array.rev
+
             yield RapidMove [ Z, safeZ ]
             yield RapidMove [ X, centerX; Y, centerY ]
             for z, feed in zPasses startZ bottomZ do
                 yield Move(plunge, [ Z, z ])
-                for offset in stepOver .. stepOver .. maxStepOut do
-                    let x0 = max xLeft (centerX - offset)
-                    let x1 = min xRight (centerX + offset)
-                    let y0 = max yBot (centerY - offset)
-                    let y1 = min yTop (centerY + offset)
+                for x0, x1, y0, y1 in boxes do
                     yield Move(feed, [ X, x0; Y, y0 ])
                     yield Move(feed, [ Y, y1 ])
                     yield Move(feed, [ X, x1 ])
                     yield Move(feed, [ Y, y0 ])
                     yield Move(feed, [ X, x0 ])
-                yield Move(feed, [ X, xLeft; Y, yBot ])
-                yield Move(feed, [ Y, yTop ])
-                yield Move(feed, [ X, xRight ])
-                yield Move(feed, [ Y, yBot ])
-                yield Move(feed, [ X, xLeft ])
             yield RapidMove [ Z, safeZ ]
         }
+
+    let cutPocketSlot
+        (bottomZ : float<m>)
+        point
+        size =
+        cutPocket -doc bottomZ point size
 
     let cutTLatch (lid: SlotLidConfig) =
         let (boxX, _, _) = box.ExteriorDimensions
