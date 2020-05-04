@@ -106,10 +106,8 @@ type BoxGenerator(box : BoxConfig) =
                 yield Move(feed, [ Y, y - rad ])
                 yield Move(feed, [ X, x - rad ])
         }
-    
-    // Cut a pocket whose bottom left corner is at x,y
-    // and with width and height as given. This cuts INSIDE the lines, not ON or OUTSIDE.
-    let cutPocket
+
+    let cutPocketSlot
         (bottomZ : float<m>)
         (x : float<m>, y : float<m>)
         (w : float<m>, h : float<m>) =
@@ -134,6 +132,46 @@ type BoxGenerator(box : BoxConfig) =
                 yield RapidMove [ X, xLeft; Y, yBot ]
             yield RapidMove [ Z, safeZ ]
         }
+    
+    // Cut a pocket whose bottom left corner is at x,y
+    // and with width and height as given. This cuts INSIDE the lines, not ON or OUTSIDE.
+    let cutPocket
+        (startZ : float<m>)
+        (bottomZ : float<m>)
+        (x : float<m>, y : float<m>)
+        (w : float<m>, h : float<m>) =
+        seq {
+            let centerX = x + w*0.5
+            let centerY = y + h*0.5
+            let stepOver = rad
+            let maxStepOut = (max w h) * 0.5
+            
+            let xLeft = x + rad
+            let xRight = x + w - rad
+            let yBot = y + rad
+            let yTop = y + h - rad
+
+            yield RapidMove [ Z, safeZ ]
+            yield RapidMove [ X, centerX; Y, centerY ]
+            for z, feed in zPasses startZ bottomZ do
+                yield Move(plunge, [ Z, z ])
+                for offset in stepOver .. stepOver .. maxStepOut do
+                    let x0 = max xLeft (centerX - offset)
+                    let x1 = min xRight (centerX + offset)
+                    let y0 = max yBot (centerY - offset)
+                    let y1 = min yTop (centerY + offset)
+                    yield Move(feed, [ X, x0; Y, y0 ])
+                    yield Move(feed, [ Y, y1 ])
+                    yield Move(feed, [ X, x1 ])
+                    yield Move(feed, [ Y, y0 ])
+                    yield Move(feed, [ X, x0 ])
+                yield Move(feed, [ X, xLeft; Y, yBot ])
+                yield Move(feed, [ Y, yTop ])
+                yield Move(feed, [ X, xRight ])
+                yield Move(feed, [ Y, yBot ])
+                yield Move(feed, [ X, xLeft ])
+            yield RapidMove [ Z, safeZ ]
+        }
 
     let cutTLatch (lid: SlotLidConfig) =
         let (boxX, _, _) = box.ExteriorDimensions
@@ -153,20 +191,20 @@ type BoxGenerator(box : BoxConfig) =
             // Generate G-Code zeroed at the center of the front panel's top edge (that the lid slides over). Translate it at the end.
 
             // Cut pocket around vertical slot
-            yield! cutPocket -di (-rad, -vSlotH * 0.5 - di) (``1/2`` + di, vSlotH + di * 2.0)
+            yield! cutPocket -doc -di (-rad, -vSlotH * 0.5 - di) (``1/2`` + di, vSlotH + di * 2.0)
 
             // Cut through-hole for vertical slot
-            yield! cutPocket through (``1/8``, -vSlotH * 0.5) (vSlotW, vSlotH)
+            yield! cutPocket (-di - doc) through (``1/8``, -vSlotH * 0.5) (vSlotW, vSlotH)
 
             let hSlotX = ``1/4`` + vSlotW
             let hSlotW = 3.0 * ``1/16``
             let hSlotH = inch + ``1/4``
 
             // Cut pocket around horizontal slot
-            yield! cutPocket -di (hSlotX - ``1/16``, -hSlotH * 0.5 - ``1/16``) (hSlotW + 3.0 * ``1/16``, hSlotH + ``1/8``)
+            yield! cutPocket -doc -di (hSlotX - ``1/16``, -hSlotH * 0.5 - ``1/16``) (hSlotW + 3.0 * ``1/16``, hSlotH + ``1/8``)
 
             // Cut through-hole for horizontal slot
-            yield! cutPocket through (hSlotX, -hSlotH * 0.5) (hSlotW, hSlotH)
+            yield! cutPocket (-di - doc) through (hSlotX, -hSlotH * 0.5) (hSlotW, hSlotH)
         } |> Seq.map (GCodeTransform.translate (lid.LidThickness + lid.SlotClearance + rad, boxX * 0.5 + rad, 0.0<m>))
 
     member this.FrontSide() =
@@ -217,7 +255,7 @@ type BoxGenerator(box : BoxConfig) =
                     , boxX - box.SideThickness
                     )
 
-                yield! cutPocket -slotDepth slotPosition slotDimensions
+                yield! cutPocketSlot -slotDepth slotPosition slotDimensions
 
             match box.BoxType.BottomCaptive with
             | None -> ()
@@ -232,7 +270,7 @@ type BoxGenerator(box : BoxConfig) =
                     , boxX - box.SideThickness
                     )
 
-                yield! cutPocket -slotDepth slotPosition slotDimensions
+                yield! cutPocketSlot -slotDepth slotPosition slotDimensions
         }
 
     member private this.Side(isLeftSide : bool) =
@@ -264,7 +302,7 @@ type BoxGenerator(box : BoxConfig) =
                     , boxY - box.SideThickness
                     )
 
-                yield! cutPocket -slotDepth slotPosition slotDimensions
+                yield! cutPocketSlot -slotDepth slotPosition slotDimensions
             | Some (SlidingLid (lid, _)) ->
                 // Top slot:
                 let sliderPosition =
@@ -277,7 +315,7 @@ type BoxGenerator(box : BoxConfig) =
                     , boxY - box.SideThickness / 2.0
                     )
 
-                yield! cutPocket -slotDepth sliderPosition sliderDimensions
+                yield! cutPocketSlot -slotDepth sliderPosition sliderDimensions
 
             match box.BoxType.BottomCaptive with
             | None -> ()
@@ -293,7 +331,7 @@ type BoxGenerator(box : BoxConfig) =
                     , boxY - box.SideThickness
                     )
 
-                yield! cutPocket -slotDepth slotPosition slotDimensions
+                yield! cutPocketSlot -slotDepth slotPosition slotDimensions
 
         }    
 
@@ -330,7 +368,7 @@ type BoxGenerator(box : BoxConfig) =
                     , boxX - box.SideThickness
                     )
 
-                yield! cutPocket -slotDepth slotPosition slotDimensions
+                yield! cutPocketSlot -slotDepth slotPosition slotDimensions
 
             match box.BoxType.BottomCaptive with
             | None -> ()
@@ -346,7 +384,7 @@ type BoxGenerator(box : BoxConfig) =
                     , boxX - box.SideThickness
                     )
 
-                yield! cutPocket -slotDepth slotPosition slotDimensions
+                yield! cutPocketSlot -slotDepth slotPosition slotDimensions
         }
 
     member private this.CaptiveLid(lid: SlotLidConfig) =
