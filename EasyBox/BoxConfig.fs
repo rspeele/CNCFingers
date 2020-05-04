@@ -18,8 +18,11 @@ type SlotLidConfig =
         SlotClearance : float<m>
     }
 
+type LatchType =
+    | TLatch
+
 type LidType =
-    | SlidingLid of SlotLidConfig
+    | SlidingLid of SlotLidConfig * LatchType option
     | CaptiveLid of SlotLidConfig
     
 

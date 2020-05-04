@@ -14,7 +14,7 @@ type BoxGenerator(box : BoxConfig) =
     let fingerParameters =
         let lidThickness =
             match box.BoxType.Top with
-            | Some (SlidingLid lid) -> lid.LidThickness
+            | Some (SlidingLid (lid, _)) -> lid.LidThickness
             | _ -> box.SideThickness
         let (_, _, z) = box.ExteriorDimensions
         // Need to make we have pockets of at least the lid thickness, so the front clearance works out.
@@ -90,8 +90,8 @@ type BoxGenerator(box : BoxConfig) =
                 yield even, finish
         }
 
-    /// Cuts a rectangle whose bottom left corner is at x,y
-    /// and with width and height as given.
+    /// Cuts the OUTLINE of a rectangle whose bottom left corner is at x,y
+    /// and with width and height as given. This cuts OUTSIDE the lines of the rectangle not ON or INSIDE.
     let cutRectangularProfile
         (bottomZ : float<m>)
         (x : float<m>, y : float<m>)
@@ -107,6 +107,8 @@ type BoxGenerator(box : BoxConfig) =
                 yield Move(feed, [ X, x - rad ])
         }
     
+    // Cut a pocket whose bottom left corner is at x,y
+    // and with width and height as given. This cuts INSIDE the lines, not ON or OUTSIDE.
     let cutPocket
         (bottomZ : float<m>)
         (x : float<m>, y : float<m>)
@@ -133,6 +135,40 @@ type BoxGenerator(box : BoxConfig) =
             yield RapidMove [ Z, safeZ ]
         }
 
+    let cutTLatch (lid: SlotLidConfig) =
+        let (boxX, _, _) = box.ExteriorDimensions
+        seq {
+            let through = -box.SideThickness - fingerParameters.SpoilDepth
+            let inch = 0.0254<m>
+            let ``1/2`` = 0.5 * inch
+            let ``1/4`` = ``1/2`` * 0.5
+            let ``1/8`` = ``1/4`` * 0.5
+            let ``1/16`` = ``1/8`` * 0.5
+            if abs(di - ``1/8``) > 0.0005<m> then
+                failwith "T-latch only supported for 1/8\" end mills"
+
+            let vSlotW = 5.0 * ``1/16``
+            let vSlotH = ``1/2``
+
+            // Generate G-Code zeroed at the center of the front panel's top edge (that the lid slides over). Translate it at the end.
+
+            // Cut pocket around vertical slot
+            yield! cutPocket -di (-rad, -vSlotH * 0.5 - di) (``1/2`` + di, vSlotH + di * 2.0)
+
+            // Cut through-hole for vertical slot
+            yield! cutPocket through (``1/8``, -vSlotH * 0.5) (vSlotW, vSlotH)
+
+            let hSlotX = ``1/4`` + vSlotW
+            let hSlotW = 3.0 * ``1/16``
+            let hSlotH = inch + ``1/4``
+
+            // Cut pocket around horizontal slot
+            yield! cutPocket -di (hSlotX - ``1/16``, -hSlotH * 0.5 - ``1/16``) (hSlotW + 3.0 * ``1/16``, hSlotH + ``1/8``)
+
+            // Cut through-hole for horizontal slot
+            yield! cutPocket through (hSlotX, -hSlotH * 0.5) (hSlotW, hSlotH)
+        } |> Seq.map (GCodeTransform.translate (lid.LidThickness + lid.SlotClearance + rad, boxX * 0.5 + rad, 0.0<m>))
+
     member this.FrontSide() =
         // Outputs:
 
@@ -155,16 +191,21 @@ type BoxGenerator(box : BoxConfig) =
             >> GCodeTransform.translate (di, boxX, 0.0<m>)
         let cutForLid =
             match box.BoxType.Top with
-            | Some (SlidingLid lid) -> lid.LidThickness + lid.SlotClearance
+            | Some (SlidingLid (lid, _)) -> lid.LidThickness + lid.SlotClearance
             | _ -> 0.0<m>
         seq {
             yield! fingerInstructions |> Seq.map xFormNearFingers
             yield! fingerInstructions |> Seq.map xFormFarFingers
-            yield! cutRectangularProfile -box.SideThickness (rad + cutForLid, rad) (boxZ - cutForLid, boxX)
+            // Outline of whole piece
+            yield! cutRectangularProfile (-box.SideThickness - fingerParameters.SpoilDepth) (rad + cutForLid, rad) (boxZ - cutForLid, boxX)
 
             match box.BoxType.Top with
             | None -> ()
-            | Some (SlidingLid _) -> ()
+            | Some (SlidingLid (lid, latch)) ->
+                match latch with
+                | None -> ()
+                | Some TLatch ->
+                    yield! cutTLatch lid
             | Some (CaptiveLid lid) ->
                 let slotPosition =
                     ( rad + lid.LidThickness / 2.0 - lid.SlotClearance
@@ -224,7 +265,7 @@ type BoxGenerator(box : BoxConfig) =
                     )
 
                 yield! cutPocket -slotDepth slotPosition slotDimensions
-            | Some (SlidingLid lid) ->
+            | Some (SlidingLid (lid, _)) ->
                 // Top slot:
                 let sliderPosition =
                     ( rad + boxZ - lid.LidThickness - lid.SlotClearance
@@ -340,7 +381,7 @@ type BoxGenerator(box : BoxConfig) =
     member this.Top() =
         match box.BoxType.Top with
         | None -> Seq.empty
-        | Some (SlidingLid lid) ->
+        | Some (SlidingLid (lid, latch)) ->
             seq {
                 let (boxX, boxY, _) = box.ExteriorDimensions
                 let lidw = boxX - box.SideThickness * 2.0 - lid.SlotClearance * 2.0

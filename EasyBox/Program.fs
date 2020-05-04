@@ -20,20 +20,20 @@ let config =
         Machine = { Unit = Millimeters }
         BoxType =
             {   Top =
-                    {   LidThickness = 0.375 * inch
-                        SlotClearance = 0.010 * inch
-                    } |> CaptiveLid |> Some
+                    {   LidThickness = 0.25 * inch
+                        SlotClearance = 0.01 * inch
+                    } |> fun x -> SlidingLid(x, Some TLatch) |> Some
                 BottomCaptive =
-                    {   LidThickness = 0.375 * inch
+                    {   LidThickness = 0.25 * inch
                         SlotClearance = 0.010 * inch
                     } |> Some
             }
 
 
-        SideThickness = 0.508 * inch
-        ExteriorDimensions = 14.5 * inch, 13.0 * inch, 5.875 * inch
-        WoodExpansionFactor = 1.015
-        ForceFingerCount = Some 6
+        SideThickness = 0.25 * inch
+        ExteriorDimensions = 2.375 * inch, 4.25 * inch, 1.5 * inch
+        WoodExpansionFactor = 1.005
+        ForceFingerCount = None
     }
 
 let save (machine : Machine) (fileName : string)(instructions : Instruction seq) =
@@ -45,10 +45,10 @@ let save (machine : Machine) (fileName : string)(instructions : Instruction seq)
 [<EntryPoint>]
 let main argv =
     let generator = BoxCode.BoxGenerator(config)
-    generator.BackSide() |> Seq.map GCodeTransform.clockwise90 |> save config.Machine "back.gcode"
-    generator.LeftSide() |> Seq.map GCodeTransform.clockwise90|> save config.Machine "left.gcode"
-    generator.RightSide() |> Seq.map GCodeTransform.clockwise90|> save config.Machine "right.gcode"
-    generator.FrontSide() |> Seq.map GCodeTransform.clockwise90|> save config.Machine "front.gcode"
+    generator.BackSide() |> save config.Machine "back.gcode"
+    generator.LeftSide() |> save config.Machine "left.gcode"
+    generator.RightSide() |> save config.Machine "right.gcode"
+    generator.FrontSide() |> save config.Machine "front.gcode"
     generator.Top() |> save config.Machine "top.gcode"
     generator.Bottom() |> save config.Machine "bottom.gcode"
     0 // return an integer exit code
